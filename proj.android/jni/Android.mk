@@ -15,7 +15,8 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/HelloWorldScene.cpp \
                    ../../Classes/ParallaxNodeExtras.cpp \
                    ../../Classes/TouchableSpriteLayer.cpp \
-                   ../../Classes/MainMenuScene.cpp
+                   ../../Classes/MainMenuScene.cpp \
+                   ../../Classes/GameOverScene.cpp
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../Classes
 
