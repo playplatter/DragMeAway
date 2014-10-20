@@ -19,18 +19,15 @@ private:
     typedef TouchableSpriteLayer self;
     typedef Layer super;
     
-    /// Our sprite
-    Sprite* _sprite;
-    
-    /// The background color layer
-    LayerColor* colorLayer;
-    
     /// The offset of a touch
     Point touchOffset;
     
 public:
     TouchableSpriteLayer();
     ~TouchableSpriteLayer();
+    
+    /// Our sprite
+    Sprite* _sprite;
     
     /// Returns the Cocos2d position of the touch
     Point touchToPoint(Touch* touch);

@@ -14,22 +14,24 @@ TouchableSpriteLayer::TouchableSpriteLayer()
     Size iSize = Director::getInstance()->getWinSize();
     
     // create sprite
-    _sprite = Sprite::create("birdAmin0000.png");
+    _sprite = Sprite::create("Kuchu0000.png");
+    this->_sprite->setScale(0.2);
     this->_sprite->setPosition(Point(iSize.width / 2.0f, iSize.height / 2.0f));
     this->_sprite->setAnchorPoint(Point(0.5f, 0.55f)); // nudge the anchor point upward because of the shadow
     this->addChild(this->_sprite, 2);
     
-    Vector<SpriteFrame*> animFrames(15);
+    Vector<SpriteFrame*> animFrames(11);
     char str[100] = {0};
     for(int i = 1; i < 11; i++)
     {
-        sprintf(str, "birdAmin00%02d.png",i);
-        auto frame = SpriteFrame::create(str,Rect(0,0,60,70)); //we assume that the sprites' dimentions are 40*40 rectangles.
+        sprintf(str, "Kuchu00%02d.png",i);
+        auto frame = SpriteFrame::create(str,Rect(0,0,512,512)); //we assume that the sprites' dimentions are 40*40 rectangles.
         animFrames.pushBack(frame);
     }
     
     auto animation = Animation::createWithSpriteFrames(animFrames, 0.2f);
     animation->setLoops(-1);
+    animation->setDelayPerUnit(0.05);
     auto animate = Animate::create(animation);
     _sprite->runAction(animate);
     
@@ -45,8 +47,7 @@ TouchableSpriteLayer::TouchableSpriteLayer()
 TouchableSpriteLayer::~TouchableSpriteLayer()
 {
     // release our sprite and layer so that it gets dealloced
-    CC_SAFE_RELEASE_NULL(this->_sprite);
-    CC_SAFE_RELEASE_NULL(this->colorLayer);
+//    CC_SAFE_RELEASE_NULL(this->_sprite);
 }
 
 Point TouchableSpriteLayer::touchToPoint(Touch* touch)
@@ -76,17 +77,18 @@ void TouchableSpriteLayer::onTouchesBegan(const std::vector<Touch*>& touches, Ev
         // if this touch is within our sprite's boundary
         if( touch && this->isTouchingSprite(touch) )
         {
+        	CocosDenshion::SimpleAudioEngine::getInstance()->stopAllEffects();
             // calculate offset from sprite to touch point
             this->touchOffset = this->_sprite->getPosition() - this->touchToPoint(touch);
             
-            this->_sprite->setScale(1.0f);
-            
-            // animate letting go of the sprite
-            this->_sprite->runAction(Sequence::create(
-                                                      ScaleBy::create(0.125f, 1.111f),
-                                                      ScaleBy::create(0.125f, 0.9f),
-                                                      nullptr
-                                                      ));
+//            this->_sprite->setScale(1.0f);
+//            
+//            // animate letting go of the sprite
+//            this->_sprite->runAction(Sequence::create(
+//                                                      ScaleBy::create(0.125f, 1.111f),
+//                                                      ScaleBy::create(0.125f, 0.9f),
+//                                                      nullptr
+//                                                      ));
         }
     }
 }
@@ -103,25 +105,26 @@ void TouchableSpriteLayer::onTouchesMoved(const std::vector<Touch*>& touches, Ev
 
 void TouchableSpriteLayer::onTouchesEnded(const std::vector<Touch*>& touches, Event* event)
 {
-    Size visibleSize = Director::getInstance()->getVisibleSize();
+//    Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
     for( auto touch : touches )
     {
         if( touch && touchOffset.x && touchOffset.y  )
         {
-            CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
+//            CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
 
             // set the new sprite position
             this->_sprite->setPosition(this->touchToPoint(touch) + this->touchOffset);
             
             // stop any existing actions and reset the scale
-            this->_sprite->stopAllActions();
+//            this->_sprite->stopAllActions();
+            
+            auto x = this->_sprite->getPositionX();
+            auto h  = this->_sprite->getBoundingBox().size.height;
             
             // animate falling of the sprite
-            this->_sprite->runAction(Sequence::create(
-                                                      RotateBy::create(0.1, 90),
-                                                      MoveBy::create(0.8, Vec2(0, -visibleSize.height)),
+            this->_sprite->runAction(Sequence::create(MoveTo::create(0.5,Vec2(x, h/2)),
                                                       nullptr
                                                       ));
 
@@ -130,7 +133,7 @@ void TouchableSpriteLayer::onTouchesEnded(const std::vector<Touch*>& touches, Ev
             
             // cpp with cocos2d-x
             CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(
-            "girlscream.wav");
+            "fall.wav");
         }
     }
 }
