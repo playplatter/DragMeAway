@@ -336,9 +336,12 @@
   jni/../../cocos2d/cocos/3d/../deprecated/CCNotificationCenter.h \
   jni/../../cocos2d/cocos/3d/../deprecated/CCDeprecated.h \
   jni/../../Classes/ParallaxNodeExtras.h \
+  jni/../../Classes/TouchableSpriteLayer.h \
   jni/../../cocos2d/cocos/audio/android/../include/SimpleAudioEngine.h \
   jni/../../cocos2d/cocos/audio/android/../include/Export.h \
-  jni/../../Classes/TouchableSpriteLayer.h
+  jni/../../Classes/GameOverScene.h \
+  jni/../../Classes/CollisionDetection.h \
+  /Users/syedasaraahmed/Development/Android/android-ndk-r10b/sources/cxx-stl/llvm-libc++/libcxx/include/iostream
 
 jni/../../Classes/HelloWorldScene.h:
 
@@ -1012,8 +1015,14 @@ jni/../../cocos2d/cocos/3d/../deprecated/CCDeprecated.h:
 
 jni/../../Classes/ParallaxNodeExtras.h:
 
+jni/../../Classes/TouchableSpriteLayer.h:
+
 jni/../../cocos2d/cocos/audio/android/../include/SimpleAudioEngine.h:
 
 jni/../../cocos2d/cocos/audio/android/../include/Export.h:
 
-jni/../../Classes/TouchableSpriteLayer.h:
+jni/../../Classes/GameOverScene.h:
+
+jni/../../Classes/CollisionDetection.h:
+
+/Users/syedasaraahmed/Development/Android/android-ndk-r10b/sources/cxx-stl/llvm-libc++/libcxx/include/iostream:
