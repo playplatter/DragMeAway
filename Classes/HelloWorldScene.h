@@ -29,6 +29,8 @@ public:
     void setInvisible(Node * node);
     float getTimeTick();
     
+    // RenderTexture
+    RenderTexture *_rt;
     
     /// The offset of a touch
     Point touchOffset;
@@ -40,9 +42,11 @@ public:
     bool isTouchingSprite(Touch* touch);
     
     // Enable Touch
-    void onTouchesBegan(const std::vector<Touch*>& touches, Event* event);
-    void onTouchesMoved(const std::vector<Touch*>& touches, Event* event);
-    void onTouchesEnded(const std::vector<Touch*>& touches, Event* event);
+//    void onTouchesBegan(const std::vector<Touch*>& touches, Event* event);
+//    void onTouchesMoved(const std::vector<Touch*>& touches, Event* event);
+//    void onTouchesEnded(const std::vector<Touch*>& touches, Event* event);
+    
+    void gameOver();
     
 protected:
     Vector<Sprite *> *_collectables;
@@ -58,7 +62,7 @@ private:
     void update(float dt);
     
     void createScrollingBackground(cocos2d::Size visibleSize, cocos2d::Vec2 origin);
-    
+    void createTopbarStats(cocos2d::Size visibleSize, cocos2d::Vec2 origin);
     void createScrollingTargets(cocos2d::Size visibleSize, cocos2d::Vec2 origin);
     
     void updateBackground(float dt);
@@ -74,9 +78,12 @@ private:
     Sprite *_background1, *_background2, *_background3, *_background4, *_grass, *_grass2, *_tree;
     
     // Score Label
-    Label *_label;
+    Label *_llives, *_lscore, *_lnuts, *_lcoins;
     
-    int _score, _lives, _nextCollectable;
+    int _score, _lives, _nuts, _coins;
+    bool isSheilded;
+    
+    int _nextCollectable;
     float _nextCollectableSpawn;
 };
 

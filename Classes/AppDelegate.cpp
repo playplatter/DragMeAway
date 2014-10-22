@@ -51,6 +51,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
     searchPaths.push_back("audios");
     searchPaths.push_back("actors");
     searchPaths.push_back("environment");
+    searchPaths.push_back("files");
     searchPaths.push_back("powerups");
     glview -> setDesignResolutionSize(480, 320, ResolutionPolicy::FIXED_WIDTH);
     

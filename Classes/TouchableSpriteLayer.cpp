@@ -15,8 +15,8 @@ TouchableSpriteLayer::TouchableSpriteLayer()
     
     // create sprite
     _sprite = Sprite::create("Kuchu0000.png");
-    this->_sprite->setScale(0.2);
-    this->_sprite->setPosition(Point(iSize.width / 2.0f, iSize.height / 2.0f));
+    this->_sprite->setScale(0.1);
+    this->_sprite->setPosition(Point(iSize.width / 2.0f, iSize.height / 3.0f));
     this->_sprite->setAnchorPoint(Point(0.5f, 0.55f)); // nudge the anchor point upward because of the shadow
     this->addChild(this->_sprite, 2);
     
@@ -75,11 +75,17 @@ void TouchableSpriteLayer::onTouchesBegan(const std::vector<Touch*>& touches, Ev
     for( auto touch : touches )
     {
         // if this touch is within our sprite's boundary
-        if( touch && this->isTouchingSprite(touch) )
+//        if( touch && this->isTouchingSprite(touch) )
         {
         	CocosDenshion::SimpleAudioEngine::getInstance()->stopAllEffects();
             // calculate offset from sprite to touch point
             this->touchOffset = this->_sprite->getPosition() - this->touchToPoint(touch);
+            auto distance = this->touchToPoint(touch).getDistance(this->_sprite->getPosition());
+            float speed = 2.0f;
+            auto time  = distance / speed;
+            
+            // move Sprite to touched location
+            this->_sprite->runAction(MoveBy::create(time, this->touchOffset));
             
 //            this->_sprite->setScale(1.0f);
 //            
@@ -105,7 +111,7 @@ void TouchableSpriteLayer::onTouchesMoved(const std::vector<Touch*>& touches, Ev
 
 void TouchableSpriteLayer::onTouchesEnded(const std::vector<Touch*>& touches, Event* event)
 {
-//    Size visibleSize = Director::getInstance()->getVisibleSize();
+    Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
     for( auto touch : touches )
@@ -124,7 +130,7 @@ void TouchableSpriteLayer::onTouchesEnded(const std::vector<Touch*>& touches, Ev
             auto h  = this->_sprite->getBoundingBox().size.height;
             
             // animate falling of the sprite
-            this->_sprite->runAction(Sequence::create(MoveTo::create(0.5,Vec2(x, h/2)),
+            this->_sprite->runAction(Sequence::create(MoveTo::create(0.5,Vec2(x, visibleSize.height/3)),
                                                       nullptr
                                                       ));
 
@@ -132,8 +138,8 @@ void TouchableSpriteLayer::onTouchesEnded(const std::vector<Touch*>& touches, Ev
             //	And play the sound effect in ccTouchesEnded() when the bullet is fired.
             
             // cpp with cocos2d-x
-            CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(
-            "fall.wav");
+//            CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(
+//            "fall.wav");
         }
     }
 }

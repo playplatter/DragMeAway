@@ -20,7 +20,8 @@ public:
     CREATE_FUNC(GameOverLayer);
     
     void gameOverDone();
-    
+
+
     CC_SYNTHESIZE_READONLY(cocos2d::LabelTTF*, _label, Label);
     
 };
