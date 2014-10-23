@@ -39,14 +39,15 @@ GameOverScene::~GameOverScene()
 
 bool GameOverLayer::init()
 {
-    if ( LayerColor::initWithColor( Color4B(255,255,255,255) ) )
+    if ( Layer::init() )
+//        if ( LayerColor::initWithColor( Color4B(255,255,255,0) ) )
     {
         Size winSize = CCDirector::getInstance()->getWinSize();
         Vec2 origin = Director::getInstance()->getVisibleOrigin();
         
-        this->_label = CCLabelTTF::create("","Arial", 32);
+        this->_label = Label::createWithSystemFont("","Arial", 32);
         _label->retain();
-        _label->setColor( Color3B(0, 0, 0) );
+        _label->setColor( Color3B(255, 255, 255) );
         _label->setPosition(Vec2(winSize.width/2, winSize.height/2));
         this->addChild(_label);
         

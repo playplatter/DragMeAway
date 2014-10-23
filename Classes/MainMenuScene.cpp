@@ -48,6 +48,8 @@ bool MainMenu::init() {
                                 origin.x + visibleSize.width / 2,
                                 origin.y + visibleSize.height / 2));
     
+    startBtn->setScale(0.2);
+    
     
     // add a "close" icon to exit the progress. it's an autorelease object
     auto closeItem = MenuItemImage::create("CloseNormal.png",
@@ -72,12 +74,12 @@ bool MainMenu::init() {
     // add a label shows "Hello World"
     // create and initialize a label
     
-    auto label = LabelTTF::create("Drag Me Away", "Arial", 24);
+    auto label = Label::createWithSystemFont("Drag Me Away", "Arial", 24);
     
     // position the label on the center of the screen
     label->setPosition(
                        Vec2(origin.x + visibleSize.width / 2,
-                            origin.y + label->getContentSize().height/2));
+                            visibleSize.height - label->getContentSize().height));
     
     // add the label as a child to this layer
     this->addChild(label, 1);

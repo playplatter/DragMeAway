@@ -77,15 +77,15 @@ void TouchableSpriteLayer::onTouchesBegan(const std::vector<Touch*>& touches, Ev
         // if this touch is within our sprite's boundary
 //        if( touch && this->isTouchingSprite(touch) )
         {
-        	CocosDenshion::SimpleAudioEngine::getInstance()->stopAllEffects();
+//        	CocosDenshion::SimpleAudioEngine::getInstance()->stopAllEffects();
             // calculate offset from sprite to touch point
             this->touchOffset = this->_sprite->getPosition() - this->touchToPoint(touch);
-            auto distance = this->touchToPoint(touch).getDistance(this->_sprite->getPosition());
-            float speed = 2.0f;
-            auto time  = distance / speed;
+//            auto distance = this->touchToPoint(touch).getDistance(this->_sprite->getPosition());
+//            float speed = 2.0f;
+//            auto time  = distance / speed;
             
             // move Sprite to touched location
-            this->_sprite->runAction(MoveBy::create(time, this->touchOffset));
+            this->_sprite->runAction(MoveTo::create(1, Vec2(touchToPoint(touch).x, touchToPoint(touch).y)));
             
 //            this->_sprite->setScale(1.0f);
 //            
@@ -127,7 +127,7 @@ void TouchableSpriteLayer::onTouchesEnded(const std::vector<Touch*>& touches, Ev
 //            this->_sprite->stopAllActions();
             
             auto x = this->_sprite->getPositionX();
-            auto h  = this->_sprite->getBoundingBox().size.height;
+//            auto h  = this->_sprite->getBoundingBox().size.height;
             
             // animate falling of the sprite
             this->_sprite->runAction(Sequence::create(MoveTo::create(0.5,Vec2(x, visibleSize.height/3)),

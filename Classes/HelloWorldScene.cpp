@@ -185,7 +185,7 @@ void HelloWorld::createTopbarStats(cocos2d::Size visibleSize,
     this->addChild(_lscore, 3);
     
     // add the label as a child to this layer
-    _lnuts = Label::createWithSystemFont("Nuts:\n" + std::to_string(_score), "Arial", 16);
+    _lnuts = Label::createWithSystemFont("Nuts:\n" + std::to_string(_nuts), "Arial", 16);
     _lnuts->setColor( Color3B(0, 0, 0) );
     // position the label on the center of the screen
     _lnuts->setPosition(
@@ -197,7 +197,7 @@ void HelloWorld::createTopbarStats(cocos2d::Size visibleSize,
     this->addChild(_lnuts, 3);
     
     // add the label as a child to this layer
-    _lcoins = Label::createWithSystemFont("Coins:\n" + std::to_string(_score), "Arial", 16);
+    _lcoins = Label::createWithSystemFont("Coins:\n" + std::to_string(_coins), "Arial", 16);
     _lcoins->setColor( Color3B(0, 0, 0) );
     // position the label on the center of the screen
     _lcoins->setPosition(
@@ -209,7 +209,7 @@ void HelloWorld::createTopbarStats(cocos2d::Size visibleSize,
     this->addChild(_lcoins, 3);
     
     // add the label as a child to this layer
-    _llives = Label::createWithSystemFont("Lives:\n" + std::to_string(_score), "Arial", 16);
+    _llives = Label::createWithSystemFont("Lives:\n" + std::to_string(_lives), "Arial", 16);
     _llives->setColor( Color3B(0, 0, 0) );
     // position the label on the center of the screen
     _llives->setPosition(
@@ -416,7 +416,7 @@ void HelloWorld::updateTargets(float dt){
         collectable->setVisible(true);
         collectable->runAction(Sequence::create(
                                                 MoveBy::create(randDuration, Vec2(-visibleSize.width-collectable->getContentSize().width, 0)),
-                                                CallFuncN::create(this, callfuncN_selector(HelloWorld::setInvisible)),
+                                                CallFuncN::create(CC_CALLBACK_1(HelloWorld::setInvisible, this)),
                                                 NULL // DO NOT FORGET TO TERMINATE WITH NULL (unexpected in C++)
                                                 ));//create(this, callfuncN_selector(HelloWorld::setInvisible)
     }
@@ -484,6 +484,7 @@ float HelloWorld::randomValueBetween(float low, float high) {
     return (((float) arc4random() / 0xFFFFFFFFu) * (high - low)) + low;
 }
 
+
 float HelloWorld::getTimeTick() {
     timeval time;
     gettimeofday(&time, NULL);
@@ -507,8 +508,8 @@ void HelloWorld::gameOver(){
     GameOverScene *gameOverScene = GameOverScene::create();
     gameOverScene->getLayer()->getLabel()->setString("Game Over \n Score: " + std::to_string(_score));
     
-//    auto transition = TransitionFade::create(1.0f, gameOverScene);
-    CCDirector::getInstance()->replaceScene(gameOverScene);
+    auto transition = TransitionSplitRows::create(1.0f, gameOverScene);
+    CCDirector::getInstance()->pushScene(transition);//replaceScene(transition);
 }
 
 

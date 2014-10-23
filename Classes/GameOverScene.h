@@ -11,7 +11,7 @@
 
 #include "cocos2d.h"
 
-class GameOverLayer : public cocos2d::LayerColor
+class GameOverLayer : public cocos2d::Layer //LayerColor
 {
 public:
     GameOverLayer():_label(NULL) {};
@@ -22,7 +22,7 @@ public:
     void gameOverDone();
 
 
-    CC_SYNTHESIZE_READONLY(cocos2d::LabelTTF*, _label, Label);
+    CC_SYNTHESIZE_READONLY(cocos2d::Label*, _label, Label);
     
 };
 

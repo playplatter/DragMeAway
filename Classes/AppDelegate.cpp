@@ -1,5 +1,5 @@
 #include "AppDelegate.h"
-#include "MainMenuScene.h"
+#include "SplashScreen.h"
 
 USING_NS_CC;
 
@@ -103,7 +103,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
     director->setAnimationInterval(1.0 / 60);
 
     // create a scene. it's an autorelease object
-    auto scene =  MainMenu::createScene();
+    auto scene =  Splash::createScene();
 
     // run
     director->runWithScene(scene);
