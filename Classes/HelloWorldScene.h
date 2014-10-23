@@ -18,7 +18,9 @@ public:
     virtual bool init();  
     
     // a selector callback
-    void menuCloseCallback(cocos2d::Ref* pSender);
+    void mainMenu(cocos2d::Ref* pSender);
+    void pauseGame(cocos2d::Ref* pSender);
+    void resumeGame(cocos2d::Ref* pSender);
     
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
@@ -47,6 +49,9 @@ public:
 //    void onTouchesEnded(const std::vector<Touch*>& touches, Event* event);
     
     void gameOver();
+    void removeSheildEffect();
+    
+    LayerColor *pausescreenbarbot, *pausescreenbartop;
     
 protected:
     Vector<Sprite *> *_collectables;
@@ -78,13 +83,15 @@ private:
     Sprite *_background1, *_background2, *_background3, *_background4, *_grass, *_grass2, *_tree;
     
     // Score Label
-    Label *_llives, *_lscore, *_lnuts, *_lcoins;
+    Label *_llives, *_lscore, *_lnuts, *_lcoins, *_label;
     
     int _score, _lives, _nuts, _coins;
     bool isSheilded;
     
     int _nextCollectable;
     float _nextCollectableSpawn;
+    
+    MenuItemImage *_backItem, *_playItem, *_pauseItem;
 };
 
 #endif // __HELLOWORLD_SCENE_H__

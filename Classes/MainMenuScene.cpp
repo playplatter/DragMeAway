@@ -9,6 +9,7 @@
 #include "MainMenuScene.h"
 #include "HelloWorldScene.h"
 #include "TouchableSpriteLayer.h"
+#include "SimpleAudioEngine.h"
 
 
 Scene* MainMenu::createScene() {
@@ -36,35 +37,45 @@ bool MainMenu::init() {
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
     
-    /////////////////////////////
-    // 2. add a menu item with "Play" or "i>" image, which is clicked to start the game
     
-    auto startBtn = MenuItemImage::create("StartBtn.png",
-                                           "StartBtn.png",
+    // add static background image
+    auto sky = Sprite::create("sky.png");
+    
+    // position the sprite on the center of the screen
+    sky->setPosition(
+                      Vec2(origin.x + visibleSize.width / 2,
+                           origin.y + visibleSize.height / 2));
+    
+    this->addChild(sky, 1);
+    
+    
+    
+    /////////////////////////////
+    // 2. add a play button to start the game
+    
+    auto playBtn = MenuItemImage::create("btn_play.png",
+                                           "btn_play.png",
                                            CC_CALLBACK_1(MainMenu::menuStartCallback, this));
     
-    startBtn->setPosition(
+    playBtn->setPosition(
                            Vec2(
-                                origin.x + visibleSize.width / 2,
-                                origin.y + visibleSize.height / 2));
-    
-    startBtn->setScale(0.2);
+                                origin.x + visibleSize.width / 2 - playBtn->getContentSize().width,
+                                origin.y));
     
     
     // add a "close" icon to exit the progress. it's an autorelease object
-    auto closeItem = MenuItemImage::create("CloseNormal.png",
-                                           "CloseSelected.png",
+    auto quitBtn = MenuItemImage::create("btn_quit.png",
+                                           "btn_quit.png",
                                            CC_CALLBACK_1(MainMenu::menuCloseCallback, this));
     
-    closeItem->setPosition(
+    quitBtn->setPosition(
                            Vec2(
-                                origin.x + visibleSize.width
-                                - closeItem->getContentSize().width / 2,
-                                origin.y + closeItem->getContentSize().height / 2));
+                                origin.x + visibleSize.width / 2 + quitBtn->getContentSize().width,
+                                origin.y));
     
     // create menu, it's an autorelease object
-    auto menu = Menu::create(startBtn, closeItem, NULL);
-    menu->setPosition(Vec2::ZERO);
+    auto menu = Menu::create(playBtn, quitBtn, NULL);
+    menu->setPosition(Vec2(0, visibleSize.height/2));
     this->addChild(menu, 1);
     
     
@@ -84,6 +95,16 @@ bool MainMenu::init() {
     // add the label as a child to this layer
     this->addChild(label, 1);
     
+    auto copyright = Label::createWithSystemFont("© 2014 All Rights Reserved with Play Platter Studios", "Arial", 14);
+    
+    // position the label on the center of the screen
+    copyright->setPosition(
+                       Vec2(origin.x + visibleSize.width / 2,
+                            copyright->getContentSize().height));
+    
+    // add the label as a child to this layer
+    this->addChild(copyright, 1);
+    
     return true;
 }
 
@@ -101,6 +122,8 @@ void MainMenu::menuCloseCallback(Ref* pSender) {
 }
 
 void MainMenu::menuStartCallback(Ref* pSender) {
+    
+    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("click");
     
     // create a scene. it's an autorelease object
     auto scene = HelloWorld::createScene();

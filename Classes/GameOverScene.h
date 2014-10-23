@@ -19,7 +19,9 @@ public:
     bool init();
     CREATE_FUNC(GameOverLayer);
     
-    void gameOverDone();
+    void quitGame();
+    void restartGame();
+    void mainMenu();
 
 
     CC_SYNTHESIZE_READONLY(cocos2d::Label*, _label, Label);

@@ -53,6 +53,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
     searchPaths.push_back("environment");
     searchPaths.push_back("files");
     searchPaths.push_back("powerups");
+    searchPaths.push_back("UI");
     glview -> setDesignResolutionSize(480, 320, ResolutionPolicy::FIXED_WIDTH);
     
     
@@ -97,7 +98,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
     fileUtils->setSearchPaths(searchPaths);
     
     // turn on display FPS
-    director->setDisplayStats(true);
+//    director->setDisplayStats(true);
 
     // set FPS. the default value is 1.0/60 if you don't call this
     director->setAnimationInterval(1.0 / 60);

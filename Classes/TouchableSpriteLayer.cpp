@@ -134,6 +134,11 @@ void TouchableSpriteLayer::onTouchesEnded(const std::vector<Touch*>& touches, Ev
                                                       nullptr
                                                       ));
 
+            // now check if the player is out of screen and bring it // back to screen
+            if(this->_sprite->getPositionX() >= visibleSize.width)
+                this->_sprite->runAction(Sequence::create(MoveTo::create(1,Vec2(this->_sprite->getContentSize().width, this->_sprite->getPositionY())), nullptr));
+            else if(this->_sprite->getPositionX() <= 0)
+               this->_sprite->runAction(Sequence::create(MoveTo::create(1,Vec2(visibleSize.width - this->_sprite->getContentSize().width, this->_sprite->getPositionY())), nullptr));
             
             //	And play the sound effect in ccTouchesEnded() when the bullet is fired.
             

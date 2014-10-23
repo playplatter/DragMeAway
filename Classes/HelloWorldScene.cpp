@@ -3,8 +3,7 @@
 #include "TouchableSpriteLayer.h"
 #include "GameOverScene.h"
 #include "CollisionDetection.h"
-
-
+#include "MainMenuScene.h"
 
 
 #define KNUMCOLLECTABLES 10
@@ -55,25 +54,72 @@ bool HelloWorld::init() {
     
     
     
+    /////////////////////////////////
+    // Pause screen
+    pausescreenbartop = LayerColor::create(Color4B(0,0,0,200), visibleSize.width, visibleSize.height/2);
+    pausescreenbartop->setPosition(0, visibleSize.height);
+    this->addChild(pausescreenbartop, 3);
+    
+    pausescreenbarbot = LayerColor::create(Color4B(0,0,0,200), visibleSize.width, visibleSize.height/2);
+    pausescreenbarbot->setPosition(0, -pausescreenbarbot->getContentSize().height);
+    this->addChild(pausescreenbarbot, 3);
+    
+    
+    
+    
+    _label = Label::createWithSystemFont("Game Paused", "Arial", 24);
+    
+    // position the label on the center of the screen
+    _label->setPosition(
+                       Vec2(origin.x + visibleSize.width / 2,
+                            visibleSize.height - _label->getContentSize().height));
+    
+    // add the label as a child to this layer
+    this->addChild(_label, 3);
+    
+    _label->setVisible(false);
+    
+    
+    
     /////////////////////////////
     // 2. add a menu item with "X" image, which is clicked to quit the program
     //    you may modify it.
     
     // add a "close" icon to exit the progress. it's an autorelease object
-    auto closeItem = MenuItemImage::create("CloseNormal.png",
-                                           "CloseSelected.png",
-                                           CC_CALLBACK_1(HelloWorld::menuCloseCallback, this));
+    _backItem = MenuItemImage::create("btn_back.png",
+                                          "btn_back.png",
+                                          CC_CALLBACK_1(HelloWorld::mainMenu, this));
+    _backItem->setScale(0.7);
+    _backItem->setPosition(Vec2(_backItem->getContentSize().width/2 + 10, _backItem->getContentSize().height/2 + 10));
     
-    closeItem->setPosition(
+    _pauseItem = MenuItemImage::create("btn_pause.png",
+                                           "btn_pause.png",
+                                           CC_CALLBACK_1(HelloWorld::pauseGame, this));
+    _pauseItem->setScale(0.7);
+    _pauseItem->setPosition(
                            Vec2(
                                 origin.x + visibleSize.width
-                                - closeItem->getContentSize().width / 2,
-                                origin.y + closeItem->getContentSize().height / 2));
+                                - _pauseItem->getContentSize().width / 2 - 10,
+                                origin.y + _pauseItem->getContentSize().height / 2 + 10));
+    
+    _playItem = MenuItemImage::create("btn_play.png",
+                                           "btn_play.png",
+                                           CC_CALLBACK_1(HelloWorld::resumeGame, this));
+    _playItem->setScale(0.7);
+    _playItem->setPosition(
+                           Vec2(
+                                origin.x + visibleSize.width
+                                - _playItem->getContentSize().width / 2 - 10,
+                                origin.y + _playItem->getContentSize().height / 2 + 10));
+    
+    
+    _playItem->setVisible(false);
+    _backItem->setVisible(false);
     
     // create menu, it's an autorelease object
-    auto menu = Menu::create(closeItem, NULL);
+    auto menu = Menu::create(_pauseItem, _backItem, _playItem, NULL);
     menu->setPosition(Vec2::ZERO);
-    this->addChild(menu, 1);
+    this->addChild(menu, 3);
     
     
     
@@ -81,6 +127,7 @@ bool HelloWorld::init() {
     /////////////////////////////
     // add a top bar that shows "Score", collected coins and fruits
     this->createTopbarStats(visibleSize, origin);
+    
     
     
     
@@ -97,6 +144,7 @@ bool HelloWorld::init() {
     this->addChild(sky, -1);
     
     
+
     
     
     //////////////////////////////
@@ -127,24 +175,24 @@ bool HelloWorld::init() {
     this->createScrollingTargets(visibleSize, origin);
     
     
-
+    
     ////////////////////////////////
     // pixel perfect collision detection
     _rt = RenderTexture::create(visibleSize.width *2, visibleSize.height *2);
     _rt->setPosition(Vec2(visibleSize.width, visibleSize.height));
     _rt->retain();
     _rt->setVisible(false);
-
-
+    
+    
     //////////////////////////////////
     // Enable Touch Sensor
     // listen for touch events
-//    auto listener = EventListenerTouchAllAtOnce::create();
-//    listener->onTouchesBegan = CC_CALLBACK_2(self::onTouchesBegan, this);
-//    listener->onTouchesMoved = CC_CALLBACK_2(self::onTouchesMoved, this);
-//    listener->onTouchesEnded = CC_CALLBACK_2(self::onTouchesEnded, this);
-//    listener->onTouchesCancelled = CC_CALLBACK_2(self::onTouchesEnded, this);
-//    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
+    //    auto listener = EventListenerTouchAllAtOnce::create();
+    //    listener->onTouchesBegan = CC_CALLBACK_2(self::onTouchesBegan, this);
+    //    listener->onTouchesMoved = CC_CALLBACK_2(self::onTouchesMoved, this);
+    //    listener->onTouchesEnded = CC_CALLBACK_2(self::onTouchesEnded, this);
+    //    listener->onTouchesCancelled = CC_CALLBACK_2(self::onTouchesEnded, this);
+    //    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
     
     return true;
 }
@@ -173,50 +221,73 @@ void HelloWorld::createTopbarStats(cocos2d::Size visibleSize,
     
     
     // add the label as a child to this layer
-    _lscore = Label::createWithSystemFont("Score:\n" + std::to_string(_score), "Arial", 16);
-    _lscore->setColor( Color3B(0, 0, 0) );
-    // position the label on the center of the screen
-    _lscore->setPosition(
-                         Vec2(
-                              origin.x + visibleSize.width
-                              - _lscore->getContentSize().width / 2,
-                              origin.y + visibleSize.height
-                              - _lscore->getContentSize().height / 2));
-    this->addChild(_lscore, 3);
+//    _lscore = Label::createWithSystemFont("Score:\n" + std::to_string(_score), "Arial", 16);
+//    _lscore->setColor( Color3B(0, 0, 0) );
+//    // position the label on the center of the screen
+//    _lscore->setPosition(
+//                         Vec2(
+//                              origin.x + visibleSize.width
+//                              - _lscore->getContentSize().width / 2,
+//                              origin.y + visibleSize.height
+//                              - _lscore->getContentSize().height / 2));
+//    this->addChild(_lscore, 3);
+//    _lscore->setVisible(false);
+    
+//    // add the label as a child to this layer
+//    _lcoins = Label::createWithSystemFont("Coins:\n" + std::to_string(_coins), "Arial", 16);
+//    _lcoins->setColor( Color3B(0, 0, 0) );
+//    // position the label on the center of the screen
+//    _lcoins->setPosition(
+//                         Vec2(
+//                              origin.x + visibleSize.width - _lscore->getContentSize().width
+//                              - _lnuts->getContentSize().width - _lcoins->getContentSize().width / 2 - 40,
+//                              origin.y + visibleSize.height
+//                              - _lcoins->getContentSize().height / 2));
+//    this->addChild(_lcoins, 3);
+    
+    // Nut board image
+    auto nutboard = Sprite::create("nuts_score.png");
+    nutboard->setScale(0.5f);
+    nutboard->setPosition(
+                          Vec2(
+                               origin.x + visibleSize.width
+                               - nutboard->getContentSize().width / 3,
+                               origin.y + visibleSize.height
+                               - nutboard->getContentSize().height / 3));
+    this->addChild(nutboard);
     
     // add the label as a child to this layer
-    _lnuts = Label::createWithSystemFont("Nuts:\n" + std::to_string(_nuts), "Arial", 16);
+    _lnuts = Label::createWithSystemFont(std::to_string(_nuts), "Arial", 16);
     _lnuts->setColor( Color3B(0, 0, 0) );
     // position the label on the center of the screen
     _lnuts->setPosition(
-                         Vec2(
-                              origin.x + visibleSize.width  - _lscore->getContentSize().width
-                              - _lnuts->getContentSize().width / 2 - 20,
-                              origin.y + visibleSize.height
-                              - _lnuts->getContentSize().height / 2));
+                        Vec2(
+                             origin.x + visibleSize.width - 30
+                             - _lnuts->getContentSize().width / 2 ,
+                             origin.y + visibleSize.height - 15
+                             - _lnuts->getContentSize().height / 2));
     this->addChild(_lnuts, 3);
     
-    // add the label as a child to this layer
-    _lcoins = Label::createWithSystemFont("Coins:\n" + std::to_string(_coins), "Arial", 16);
-    _lcoins->setColor( Color3B(0, 0, 0) );
-    // position the label on the center of the screen
-    _lcoins->setPosition(
-                         Vec2(
-                              origin.x + visibleSize.width - _lscore->getContentSize().width
-                              - _lnuts->getContentSize().width - _lcoins->getContentSize().width / 2 - 40,
-                              origin.y + visibleSize.height
-                              - _lcoins->getContentSize().height / 2));
-    this->addChild(_lcoins, 3);
+    
+    
+    // heart icon
+    auto heart = Sprite::create("heart.png");
+    heart->setScale(0.3);
+    heart->setPosition(
+                          Vec2(
+                               origin.x + heart->getBoundingBox().size.width / 2,
+                               origin.y + visibleSize.height - heart->getBoundingBox().size.height/2));
+    this->addChild(heart);
     
     // add the label as a child to this layer
-    _llives = Label::createWithSystemFont("Lives:\n" + std::to_string(_lives), "Arial", 16);
+    _llives = Label::createWithSystemFont(" x " + std::to_string(_lives), "Arial", 16);
     _llives->setColor( Color3B(0, 0, 0) );
     // position the label on the center of the screen
     _llives->setPosition(
                          Vec2(
-                              origin.x + _llives->getContentSize().width / 2,
+                              origin.x + heart->getBoundingBox().size.width / 2 + _llives->getContentSize().width / 2 + 10,
                               origin.y + visibleSize.height
-                              - _llives->getContentSize().height / 2));
+                              - _llives->getContentSize().height / 2 - 10));
     this->addChild(_llives, 3);
 }
 
@@ -234,55 +305,29 @@ void HelloWorld::createScrollingTargets(cocos2d::Size visibleSize,
      3 = powerups
      ******************/
     
+    isSheilded = false; // initially no sheilds
     
     _collectables = new Vector<Sprite *>();
     
     for(int i = 0; i < KNUMCOLLECTABLES; ++i) {
-//        auto cherry = Sprite::create("cherry.png");
-//        auto pear = Sprite::create("pear.png");
-//        auto grapes = Sprite::create("grapes.png");
-        auto sun = Sprite::create("sun.png");
         auto nut = Sprite::create("nut.png");
-        
-//        cherry->setTag(0);
-//        pear->setTag(0);
-//        grapes->setTag(0);
         nut->setTag(0);
-        sun->setTag(2);
-        
-//        cherry->setVisible(false);
-//        this->addChild(cherry, 2);
-//        pear->setVisible(false);
-//        this->addChild(pear, 2);
-//        grapes->setVisible(false);
-//        this->addChild(grapes, 2);
         nut->setVisible(false);
         this->addChild(nut, 2);
-        sun->setVisible(false);
-        this->addChild(sun, 2);
-        
-//        _collectables->pushBack(cherry);
-//        _collectables->pushBack(pear);
-//        _collectables->pushBack(grapes);
         _collectables->pushBack(nut);
-        _collectables->pushBack(sun);
         
         auto star = Sprite::create("star.png");
         star->setTag(1);
-        
         star->setVisible(false);
         this->addChild(star, 2);
-        
         _collectables->pushBack(star);
     }
     
     for(int i = 0; i < KNUMPOWERUPS; ++i) {
         auto sheild = Sprite::create("shield.png");
         sheild->setTag(3);
-        
         sheild->setVisible(false);
         this->addChild(sheild, 1);
-        
         _collectables->pushBack(sheild);
     }
 }
@@ -426,52 +471,54 @@ void HelloWorld::updateTargets(float dt){
         if (!((Sprite *) collectable)->isVisible() )
             continue;
         
-        // Bounding box of the Two concerned sprites being save
-//        Rect r1 = actor->_sprite->boundingBox();
-//        Rect r2 = ((Sprite *)collectable)->boundingBox();
-
-        // Look for simple bounding box collision
-//        if (r1.intersectsRect(r2)) {
-
         // pp collision detection
         if (CollisionDetection::GetInstance()->areTheSpritesColliding(actor->_sprite, (Sprite *)collectable, false, _rt)) {
-            if (((Sprite *)collectable)->getTag() == 1){
-                actor->_sprite->runAction( CCBlink::create(1.0, 9));
+            if (((Sprite *)collectable)->getTag() == 1){ // hurdle
+                if (!isSheilded) {
+                    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("pew.wav");
+                    actor->_sprite->runAction( Blink::create(1.0, 9));
+                    _lives--;
+                    _llives->setString(" x " + std::to_string(_lives));
+                    // game over!!
+                    if (_lives == 0) {
+                        // Show score & Game over scene with restart button
+                        this->gameOver();
+                        break;
+                    }
+                }
+            }
+            if (((Sprite *)collectable)->getTag() == 3) { // power up
+                // it's a sheild
+                //                    _lives++;
+                auto oldtint = actor->_sprite->getColor();
+                auto sheildedEffect = Sequence::create(TintTo::create(0.5, 256, 100, 100),
+                                                       TintTo::create(0.5, oldtint.r, oldtint.g, oldtint.b), NULL);
                 
-                _lives--;
-                _llives->setString("Lives:\n" + std::to_string(_lives));
+                actor->_sprite->runAction(
+                                          Sequence::create(
+                                                           Repeat::create(sheildedEffect, 10),
+                                                           CallFunc::create(CC_CALLBACK_0(HelloWorld::removeSheildEffect, this)), NULL));
+                isSheilded = true;
+                CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("powerup.wav");
+            }
+            if (((Sprite *)collectable)->getTag() == 0) { // nut
+                // it's a nut
+                _nuts++;
+                _lnuts->setString(std::to_string(_nuts));
                 
-                // game over!!
-                if (_lives == 0) {
-                    // Show score & Game over scene with restart button
-                    this->gameOver();
-                    break;
-                }
-                CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("pew.wav");
-            } else {
-                if (((Sprite *)collectable)->getTag() == 0) {
-                    // it's a nut
-                    _nuts++;
-                    _lnuts->setString("Nuts:\n" + std::to_string(_nuts));
-                }
-                if (((Sprite *)collectable)->getTag() == 2) {
-                    // it's a coin/sun
-                    _coins++;
-                    _lcoins->setString("Coins:\n" + std::to_string(_coins));
-                }
-                if (((Sprite *)collectable)->getTag() == 3) {
-                    // it's a nut
-                    _lives++;
-                    _llives->setString("Lives:\n" + std::to_string(_lives));
-                }
                 // Now update the score.
-                _score = (_nuts+_coins)*_lives;
-                _lscore->setString("Score:\n" + std::to_string(_score));
+                _score = (_nuts+_coins)*2;
+//                _lscore->setString("Score:\n" + std::to_string(_score));
                 CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("collect.wav");
             }
             ((Sprite *)collectable)->setVisible(false);
         }
     }
+}
+
+
+void HelloWorld::removeSheildEffect() {
+    isSheilded = false;
 }
 
 
@@ -506,7 +553,7 @@ void HelloWorld::gameOver(){
     actor->_sprite->stopAllActions();
     this->unscheduleUpdate();
     GameOverScene *gameOverScene = GameOverScene::create();
-    gameOverScene->getLayer()->getLabel()->setString("Game Over \n Score: " + std::to_string(_score));
+    gameOverScene->getLayer()->getLabel()->setString("Total Score: " + std::to_string(_score));
     
     auto transition = TransitionSplitRows::create(1.0f, gameOverScene);
     CCDirector::getInstance()->pushScene(transition);//replaceScene(transition);
@@ -518,10 +565,72 @@ void HelloWorld::gameOver(){
 
 
 
+void HelloWorld::mainMenu(Ref* pSender) {
+    CocosDenshion::SimpleAudioEngine::getInstance()->setEffectsVolume(1.0f);
+    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("click");
+    CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
+    auto scene = MainMenu::createScene();
+    CCDirector::getInstance()->replaceScene(scene);
+}
+
+void HelloWorld::pauseGame(Ref* pSender) {
+    CocosDenshion::SimpleAudioEngine::getInstance()->setEffectsVolume(1.0f);
+    CocosDenshion::SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
+    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("click");
+    this->pause();
+    
+    _label->setVisible(true);
+    
+    pausescreenbartop->runAction(Sequence::create(MoveTo::create(0.2,
+                                                                 Vec2(0, visibleSize.height - pausescreenbartop->getContentSize().height)), NULL));
+    pausescreenbarbot->runAction(MoveTo::create(0.2,
+                                                Vec2(0, 0)));
+    
+    // show resume button
+    _pauseItem->setVisible(false);
+    _playItem->setVisible(true);
+    _backItem->setVisible(true);
+    
+    actor->pause();
+    actor->_sprite->pause();
+    for (int i = 0; i < _collectables->size(); i++) {
+        _collectables->at(i)->pause();
+    }
+}
+
+void HelloWorld::resumeGame(Ref* pSender) {
+    CocosDenshion::SimpleAudioEngine::getInstance()->setEffectsVolume(1.0f);
+    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("click");
+    CocosDenshion::SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
+    
+    
+    pausescreenbartop->runAction(MoveTo::create(0.5,
+                                                Vec2(0, visibleSize.height)));
+    pausescreenbarbot->runAction(MoveTo::create(0.5,
+                                                Vec2(0, - pausescreenbarbot->getContentSize().height)));
+    _label->setVisible(false);
+    
+    this->resume();
+    
+    // show pause button
+    _pauseItem->setVisible(true);
+    _playItem->setVisible(false);
+    _backItem->setVisible(false);
+    
+    actor->resume();
+    actor->_sprite->resume();
+    for (int i = 0; i < _collectables->size(); i++) {
+        _collectables->at(i)->resume();
+    }
+}
 
 
 
 
+
+
+
+/********************************************/
 
 
 
@@ -536,7 +645,7 @@ void HelloWorld::gameOver(){
 //{
 //    // here's one way, but includes the rectangular white space around our sprite
 //    //return CGRectContainsPoint(this->sprite->boundingBox(), this->touchToPoint(touch));
-//    
+//
 //    // this way is more intuitive for the user because it ignores the white space.
 //    // it works by calculating the distance between the sprite's center and the touch point,
 //    // and seeing if that distance is less than the sprite's radius
@@ -547,7 +656,7 @@ void HelloWorld::gameOver(){
 //{
 //    // reset touch offset
 //    this->touchOffset = Point::ZERO;
-//    
+//
 //    for( auto touch : touches )
 //    {
 //        // if this touch is within our sprite's boundary
@@ -555,7 +664,7 @@ void HelloWorld::gameOver(){
 //        {
 //            // calculate offset from sprite to touch point
 //            //            this->touchOffset = this->_sprite->getPosition() - this->touchToPoint(touch);
-//            
+//
 //            //            this->_sprite->setScale(1.0f);
 //            //
 //            //            // animate letting go of the sprite
@@ -582,7 +691,7 @@ void HelloWorld::gameOver(){
 //{
 //    //    Size visibleSize = Director::getInstance()->getVisibleSize();
 //    Vec2 origin = Director::getInstance()->getVisibleOrigin();
-//    
+//
 //    for( auto touch : touches )
 //    {
 //        if( touch && touchOffset.x && touchOffset.y  )
@@ -602,10 +711,10 @@ void HelloWorld::gameOver(){
 //            //            this->_sprite->runAction(Sequence::create(MoveTo::create(0.5,Vec2(x, h/2)),
 //            //                                                      nullptr
 //            //                                                      ));
-//            //            
-//            //            
+//            //
+//            //
 //            //            //	And play the sound effect in ccTouchesEnded() when the bullet is fired.
-//            //            
+//            //
 //            //            // cpp with cocos2d-x
 //            //            CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(
 //            //                                                                        "fall.wav");
@@ -626,22 +735,3 @@ void HelloWorld::gameOver(){
 
 
 
-
-
-
-
-void HelloWorld::menuCloseCallback(Ref* pSender) {
-    
-//        Director::getInstance()->replaceScene(scene);
-    
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WP8) || (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT)
-    MessageBox("You pressed the close button. Windows Store Apps do not implement a close button.","Alert");
-    return;
-#endif
-    
-    Director::getInstance()->end();
-    
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-    exit(0);
-#endif
-}
