@@ -54,8 +54,7 @@ public:
     LayerColor *pausescreenbarbot, *pausescreenbartop;
     
 protected:
-    Vector<Sprite *> *_collectables;
-    Vector<Sprite *> *_hurdles;
+    Vector<Sprite *> *_nuts, *_collectables, *_hurdles;
     
 private:
     
@@ -85,11 +84,12 @@ private:
     // Score Label
     Label *_llives, *_lscore, *_lnuts, *_lcoins, *_label;
     
-    int _score, _lives, _nuts, _coins;
+    int _score;
+    int _lives, _nutscore, _coins;
     bool isSheilded;
     
-    int _nextCollectable;
-    float _nextCollectableSpawn;
+    int _nextCollectable, _nextNut;
+    float _nextCollectableSpawn, _nextNutSpawn;
     
     MenuItemImage *_backItem, *_playItem, *_pauseItem;
 };

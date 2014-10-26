@@ -22,7 +22,8 @@ public:
     void quitGame();
     void restartGame();
     void mainMenu();
-
+    
+    int _score;
 
     CC_SYNTHESIZE_READONLY(cocos2d::Label*, _label, Label);
     

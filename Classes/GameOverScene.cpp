@@ -47,15 +47,10 @@ bool GameOverLayer::init()
         Size visibleSize = CCDirector::getInstance()->getWinSize();
         Vec2 origin = Director::getInstance()->getVisibleOrigin();
         
-        this->_label = Label::createWithSystemFont("","Arial", 24);
-        _label->retain();
-        _label->setColor( Color3B(255, 255, 255) );
-        _label->setPosition(Vec2(visibleSize.width/2, visibleSize.height/2 + _label->cocos2d::Node::getContentSize().height*2));
-        this->addChild(_label);
         
-        
-        
+        // Title
         auto label = Label::createWithSystemFont("Game Over", "Arial", 34);
+        
         
         // position the label on the center of the screen
         label->setPosition(
@@ -65,25 +60,55 @@ bool GameOverLayer::init()
         // add the label as a child to this layer
         this->addChild(label, 1);
         
+        // Nut board image
+        auto nutboard = Sprite::create("nuts_score.png");
+        nutboard->setPosition(
+                              Vec2(
+                                   origin.x + visibleSize.width/2,
+                                   origin.y + visibleSize.height  - label->getContentSize().height
+                                   - nutboard->getContentSize().height));
+        this->addChild(nutboard);
+        
+        
+        
+        // nuts
+        this->_label = Label::createWithSystemFont("","Arial", 24);
+        _label->setColor( Color3B(255, 255, 255) );
+        this->addChild(_label);
+        _label->setPosition(
+                            Vec2(visibleSize.width/2 + nutboard->getContentSize().width/4,
+                                 visibleSize.height  - label->getContentSize().height - nutboard->getContentSize().height - 5));
+        
+        
+        
+        // Title
+//        auto score = Label::createWithSystemFont("Score = "+ std::to_string(_score), "Arial", 24);
+//        
+//        
+//        // position the label on the center of the screen
+//        score->setPosition(
+//                           Vec2(origin.x + visibleSize.width / 2,
+//                                visibleSize.height - score->getContentSize().height));
+//        this->addChild(score);
         
         // Menu items
         auto menuItem = MenuItemImage::create("btn_menu.png",
                                                "btn_menu.png",
                                                callfunc_selector(GameOverLayer::mainMenu));
         
-        menuItem->setPosition(Vec2(visibleSize.width/2 - menuItem->getContentSize().width - 10, visibleSize.height/3.5));
+        menuItem->setPosition(Vec2(visibleSize.width/2 - menuItem->getContentSize().width - 10, visibleSize.height/4));
         
         auto restartItem = MenuItemImage::create("btn_restart.png",
                                                "btn_restart.png",
                                                callfunc_selector(GameOverLayer::restartGame));
         
-        restartItem->setPosition(Vec2(visibleSize.width/2, visibleSize.height/3.5));
+        restartItem->setPosition(Vec2(visibleSize.width/2, visibleSize.height/4));
         
         auto closeItem = MenuItemImage::create("btn_quit.png",
                                                "btn_quit.png",
                                                callfunc_selector(GameOverLayer::quitGame));
         
-        closeItem->setPosition(Vec2(visibleSize.width/2 + closeItem->getContentSize().width +10, visibleSize.height/3.5));
+        closeItem->setPosition(Vec2(visibleSize.width/2 + closeItem->getContentSize().width +10, visibleSize.height/4));
 
         
             // create menu, it's an autorelease object
@@ -106,6 +131,8 @@ bool GameOverLayer::init()
 
 void GameOverLayer::quitGame()
 {
+    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
+    
     #if (CC_TARGET_PLATFORM == CC_PLATFORM_WP8) || (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT)
         MessageBox("You pressed the close button. Windows Store Apps do not implement a close button.","Alert");
         return;
@@ -120,14 +147,14 @@ void GameOverLayer::quitGame()
 
 void GameOverLayer::mainMenu()
 {
-    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("click");
+    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
     auto scene = MainMenu::createScene();
     CCDirector::getInstance()->replaceScene(scene);//CCDirector::getInstance()->getRunningScene()
 }
 
 void GameOverLayer::restartGame()
 {
-    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("click");
+    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
     auto scene = HelloWorld::createScene();
     CCDirector::getInstance()->replaceScene(scene);//CCDirector::getInstance()->getRunningScene()
 }
@@ -136,7 +163,7 @@ GameOverLayer::~GameOverLayer()
 {
     if (_label)
     {
-        _label->release();
+//        _label->release();
         _label = NULL;
     }
 }
