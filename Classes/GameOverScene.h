@@ -23,7 +23,7 @@ public:
     void restartGame();
     void mainMenu();
     
-    int _score;
+    cocos2d::Label * _score;
 
     CC_SYNTHESIZE_READONLY(cocos2d::Label*, _label, Label);
     

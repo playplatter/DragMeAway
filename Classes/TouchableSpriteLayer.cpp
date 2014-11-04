@@ -14,6 +14,7 @@ TouchableSpriteLayer::TouchableSpriteLayer()
     Size iSize = Director::getInstance()->getWinSize();
     
     // create sprite
+//    _sprite = Sprite::create("birdAmin0000.png");
     _sprite = Sprite::create("Kuchu0000.png");
     this->_sprite->setScale(0.1);
     this->_sprite->setPosition(Point(iSize.width / 2.0f, iSize.height / 3.0f));
@@ -25,7 +26,9 @@ TouchableSpriteLayer::TouchableSpriteLayer()
     for(int i = 1; i < 11; i++)
     {
         sprintf(str, "Kuchu00%02d.png",i);
-        auto frame = SpriteFrame::create(str,Rect(0,0,512,512)); //we assume that the sprites' dimentions are 40*40 rectangles.
+        //        sprintf(str, "birdAmin00%02d.png",i);
+//        auto frame = SpriteFrame::create(str,Rect(0,0,60,70));
+        auto frame = SpriteFrame::create(str,Rect(0,0,512,512)); // we assume that the sprites' dimentions are 40*40 rectangles.
         animFrames.pushBack(frame);
     }
     
@@ -35,6 +38,8 @@ TouchableSpriteLayer::TouchableSpriteLayer()
     auto animate = Animate::create(animation);
     _sprite->runAction(animate);
     
+    
+    
     // listen for touch events
     auto listener = EventListenerTouchAllAtOnce::create();
     listener->onTouchesBegan = CC_CALLBACK_2(self::onTouchesBegan, this);
@@ -43,6 +48,8 @@ TouchableSpriteLayer::TouchableSpriteLayer()
     listener->onTouchesCancelled = CC_CALLBACK_2(self::onTouchesEnded, this);
     this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
 }
+
+
 
 TouchableSpriteLayer::~TouchableSpriteLayer()
 {
@@ -75,7 +82,7 @@ void TouchableSpriteLayer::onTouchesBegan(const std::vector<Touch*>& touches, Ev
     for( auto touch : touches )
     {
         // if this touch is within our sprite's boundary
-//        if( touch && this->isTouchingSprite(touch) )
+        if( touch && this->isTouchingSprite(touch) )
         {
 //        	CocosDenshion::SimpleAudioEngine::getInstance()->stopAllEffects();
             // calculate offset from sprite to touch point
@@ -85,7 +92,7 @@ void TouchableSpriteLayer::onTouchesBegan(const std::vector<Touch*>& touches, Ev
 //            auto time  = distance / speed;
             
             // move Sprite to touched location
-            this->_sprite->runAction(MoveTo::create(1, Vec2(touchToPoint(touch).x, touchToPoint(touch).y)));
+            this->_sprite->runAction(MoveTo::create(2.0, Vec2(touchToPoint(touch).x, touchToPoint(touch).y)));
             
 //            this->_sprite->setScale(1.0f);
 //            
@@ -118,17 +125,11 @@ void TouchableSpriteLayer::onTouchesEnded(const std::vector<Touch*>& touches, Ev
     {
         if( touch && touchOffset.x && touchOffset.y  )
         {
-//            CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
 
             // set the new sprite position
             this->_sprite->setPosition(this->touchToPoint(touch) + this->touchOffset);
-            
-            // stop any existing actions and reset the scale
-//            this->_sprite->stopAllActions();
-            
             auto x = this->_sprite->getPositionX();
-//            auto h  = this->_sprite->getBoundingBox().size.height;
-            
+
             // animate falling of the sprite
             this->_sprite->runAction(Sequence::create(MoveTo::create(0.5,Vec2(x, visibleSize.height/3)),
                                                       nullptr
@@ -139,12 +140,6 @@ void TouchableSpriteLayer::onTouchesEnded(const std::vector<Touch*>& touches, Ev
                 this->_sprite->runAction(Sequence::create(MoveTo::create(1,Vec2(this->_sprite->getContentSize().width, this->_sprite->getPositionY())), nullptr));
             else if(this->_sprite->getPositionX() <= 0)
                this->_sprite->runAction(Sequence::create(MoveTo::create(1,Vec2(visibleSize.width - this->_sprite->getContentSize().width, this->_sprite->getPositionY())), nullptr));
-            
-            //	And play the sound effect in ccTouchesEnded() when the bullet is fired.
-            
-            // cpp with cocos2d-x
-//            CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(
-//            "fall.wav");
         }
     }
 }

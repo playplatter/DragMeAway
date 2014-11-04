@@ -58,8 +58,8 @@ bool Splash::init()
     
     this->addChild(logo, 1);
     this->runAction( Sequence::create(
-                                        DelayTime::create(3),
-                                        CallFunc::create(this, callfunc_selector(Splash::dismissSplash)),
+                                        DelayTime::create(1),
+                                        CallFunc::create(CC_CALLBACK_0(Splash::dismissSplash,this)),
                                         NULL));
     //    CallFunc::create(CC_CALLBACK_1(Splash::dismissSplash, this))
     return true;

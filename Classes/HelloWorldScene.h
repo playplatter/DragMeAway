@@ -49,13 +49,16 @@ public:
 //    void onTouchesEnded(const std::vector<Touch*>& touches, Event* event);
     
     void gameOver();
+    void stopEverythingMoving();
     void removeSheildEffect();
     
     LayerColor *pausescreenbarbot, *pausescreenbartop;
     
+    float _playerCollisionRadius, _hurdleCollisionRadius, _nutsCollisionRadius;
+    
 protected:
     Vector<Sprite *> *_nuts, *_collectables, *_hurdles;
-    
+    Animate *_animateBird;
 private:
     
     typedef HelloWorld self;
@@ -72,6 +75,8 @@ private:
     void updateBackground(float dt);
     void updateTargets(float dt);
     
+    void setVisible();
+    
     Size visibleSize;
     Vec2 origin;
     
@@ -84,12 +89,14 @@ private:
     // Score Label
     Label *_llives, *_lscore, *_lnuts, *_lcoins, *_label;
     
+    Color3B _oldtint;
+    
     int _score;
     int _lives, _nutscore, _coins;
-    bool isSheilded;
+    bool isSheilded, isSheildVisible, isPaused = false;
     
-    int _nextCollectable, _nextNut;
-    float _nextCollectableSpawn, _nextNutSpawn;
+    int _nextCollectable, _nextNut, _nextHurdle;
+    float _nextCollectableSpawn, _nextNutSpawn, _nextHurdleSpawn;
     
     MenuItemImage *_backItem, *_playItem, *_pauseItem;
 };

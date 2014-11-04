@@ -4,13 +4,12 @@
 #include "GameOverScene.h"
 #include "CollisionDetection.h"
 #include "MainMenuScene.h"
+#include "coordinates.h"
 
 
-#define KNUMCOLLECTABLES 10
-#define KNUMHURDLES 4
-#define KNUMPOWERUPS 1
-#define KNUMLIVES 3
-#define KNUMCOINS 10
+
+const float hurdleCollisionRadius = 5.0f;
+
 
 
 Scene* HelloWorld::createScene() {
@@ -157,8 +156,9 @@ bool HelloWorld::init() {
     // add the touchable actor layer
     actor = new TouchableSpriteLayer;
     this->addChild(actor, 2);
+    _oldtint = actor->_sprite->getColor();
     actor->release(); // addChild() retained so we release
-    
+    _playerCollisionRadius = actor->_sprite->getBoundingBox().size.width/3;
     
     
     ////////////////////////////////
@@ -174,10 +174,10 @@ bool HelloWorld::init() {
     
     ////////////////////////////////
     // pixel perfect collision detection
-    _rt = RenderTexture::create(visibleSize.width *2, visibleSize.height *2);
-    _rt->setPosition(Vec2(visibleSize.width, visibleSize.height));
-    _rt->retain();
-    _rt->setVisible(false);
+//    _rt = RenderTexture::create(visibleSize.width *2, visibleSize.height *2);
+//    _rt->setPosition(Vec2(visibleSize.width, visibleSize.height));
+//    _rt->retain();
+//    _rt->setVisible(false);
     
     
     //////////////////////////////////
@@ -203,93 +203,12 @@ bool HelloWorld::init() {
 
 void HelloWorld::update(float dt) {
     
-    this->updateBackground(dt);
-    this->updateTargets(dt);
+    if (!isPaused) {
+        this->updateBackground(dt);
+        this->updateTargets(dt);
+    }
 }
 
-
-
-
-
-void HelloWorld::createTopbarStats(cocos2d::Size visibleSize,
-                                   cocos2d::Vec2 origin){
-    
-    _score = 00;
-    _lives = KNUMLIVES;
-    _nutscore = 0;
-    _coins = 0;
-    
-    
-    // add the label as a child to this layer
-//    _lscore = Label::createWithSystemFont("Score:\n" + std::to_string(_score), "Arial", 16);
-//    _lscore->setColor( Color3B(0, 0, 0) );
-//    // position the label on the center of the screen
-//    _lscore->setPosition(
-//                         Vec2(
-//                              origin.x + visibleSize.width
-//                              - _lscore->getContentSize().width / 2,
-//                              origin.y + visibleSize.height
-//                              - _lscore->getContentSize().height / 2));
-//    this->addChild(_lscore, 3);
-//    _lscore->setVisible(false);
-    
-//    // add the label as a child to this layer
-//    _lcoins = Label::createWithSystemFont("Coins:\n" + std::to_string(_coins), "Arial", 16);
-//    _lcoins->setColor( Color3B(0, 0, 0) );
-//    // position the label on the center of the screen
-//    _lcoins->setPosition(
-//                         Vec2(
-//                              origin.x + visibleSize.width - _lscore->getContentSize().width
-//                              - _lnuts->getContentSize().width - _lcoins->getContentSize().width / 2 - 40,
-//                              origin.y + visibleSize.height
-//                              - _lcoins->getContentSize().height / 2));
-//    this->addChild(_lcoins, 3);
-    
-    // Nut board image
-    auto nutboard = Sprite::create("nuts_score.png");
-    nutboard->setScale(0.5f);
-    nutboard->setPosition(
-                          Vec2(
-                               origin.x + visibleSize.width
-                               - nutboard->getContentSize().width / 3,
-                               origin.y + visibleSize.height
-                               - nutboard->getContentSize().height / 3));
-    this->addChild(nutboard);
-    
-    // add the label as a child to this layer
-    _lnuts = Label::createWithSystemFont(std::to_string(_nutscore), "Arial", 16);
-    _lnuts->setColor( Color3B(0, 0, 0) );
-    // position the label on the center of the screen
-    _lnuts->setPosition(
-                        Vec2(
-                             origin.x + visibleSize.width - 30
-                             - _lnuts->getContentSize().width / 2 ,
-                             origin.y + visibleSize.height - 15
-                             - _lnuts->getContentSize().height / 2));
-    this->addChild(_lnuts, 3);
-    
-    
-    
-    // heart icon
-    auto heart = Sprite::create("heart.png");
-    heart->setScale(0.3);
-    heart->setPosition(
-                          Vec2(
-                               origin.x + heart->getBoundingBox().size.width / 2,
-                               origin.y + visibleSize.height - heart->getBoundingBox().size.height/2));
-    this->addChild(heart);
-    
-    // add the label as a child to this layer
-    _llives = Label::createWithSystemFont(" x " + std::to_string(_lives), "Arial", 16);
-    _llives->setColor( Color3B(0, 0, 0) );
-    // position the label on the center of the screen
-    _llives->setPosition(
-                         Vec2(
-                              origin.x + heart->getBoundingBox().size.width / 2 + _llives->getContentSize().width / 2 + 10,
-                              origin.y + visibleSize.height
-                              - _llives->getContentSize().height / 2 - 10));
-    this->addChild(_llives, 3);
-}
 
 
 
@@ -401,7 +320,100 @@ void HelloWorld::updateBackground(float dt){
 
 
 
+#define KNUMNUTS 10
+#define KNUMHURDLES 2
+#define KNUMPOWERUPS 1
+#define KNUMLIVES 3
+#define KNUMCOINS 10
 
+void HelloWorld::createTopbarStats(cocos2d::Size visibleSize,
+                                   cocos2d::Vec2 origin){
+    
+    _score = 00;
+    _lives = KNUMLIVES;
+    _nutscore = 0;
+    _coins = 0;
+    
+    
+    // add the label as a child to this layer
+    //    _lscore = Label::createWithSystemFont("Score:\n" + std::to_string(_score), "Arial", 16);
+    //    _lscore->setColor( Color3B(0, 0, 0) );
+    //    // position the label on the center of the screen
+    //    _lscore->setPosition(
+    //                         Vec2(
+    //                              origin.x + visibleSize.width
+    //                              - _lscore->getContentSize().width / 2,
+    //                              origin.y + visibleSize.height
+    //                              - _lscore->getContentSize().height / 2));
+    //    this->addChild(_lscore, 3);
+    //    _lscore->setVisible(false);
+    
+    //    // add the label as a child to this layer
+    //    _lcoins = Label::createWithSystemFont("Coins:\n" + std::to_string(_coins), "Arial", 16);
+    //    _lcoins->setColor( Color3B(0, 0, 0) );
+    //    // position the label on the center of the screen
+    //    _lcoins->setPosition(
+    //                         Vec2(
+    //                              origin.x + visibleSize.width - _lscore->getContentSize().width
+    //                              - _lnuts->getContentSize().width - _lcoins->getContentSize().width / 2 - 40,
+    //                              origin.y + visibleSize.height
+    //                              - _lcoins->getContentSize().height / 2));
+    //    this->addChild(_lcoins, 3);
+    
+    // Nut board image
+    auto nutboard = Sprite::create("nuts_score.png");
+    nutboard->setScale(0.5f);
+    nutboard->setPosition(
+                          Vec2(
+                               origin.x + visibleSize.width
+                               - nutboard->getContentSize().width / 3,
+                               origin.y + visibleSize.height
+                               - nutboard->getContentSize().height / 3));
+    this->addChild(nutboard);
+    
+    // add the label as a child to this layer
+    _lnuts = Label::createWithSystemFont(std::to_string(_nutscore), "Arial", 16);
+    _lnuts->setColor( Color3B(0, 0, 0) );
+    // position the label on the center of the screen
+    _lnuts->setPosition(
+                        Vec2(
+                             origin.x + visibleSize.width - 30
+                             - _lnuts->getContentSize().width / 2 ,
+                             origin.y + visibleSize.height - 15
+                             - _lnuts->getContentSize().height / 2));
+    this->addChild(_lnuts, 3);
+    
+    
+    
+    // heart icon
+    auto heart = Sprite::create("heart.png");
+    heart->setScale(0.3);
+    heart->setPosition(
+                       Vec2(
+                            origin.x + heart->getBoundingBox().size.width / 2,
+                            origin.y + visibleSize.height - heart->getBoundingBox().size.height/2));
+    this->addChild(heart);
+    
+    // add the label as a child to this layer
+    _llives = Label::createWithSystemFont(" x " + std::to_string(_lives), "Arial", 16);
+    _llives->setColor( Color3B(0, 0, 0) );
+    // position the label on the center of the screen
+    _llives->setPosition(
+                         Vec2(
+                              origin.x + heart->getBoundingBox().size.width / 2 + _llives->getContentSize().width / 2 + 10,
+                              origin.y + visibleSize.height
+                              - _llives->getContentSize().height / 2 - 10));
+    this->addChild(_llives, 3);
+}
+
+
+
+
+
+
+#define NUTS 0
+#define HURDLES 1
+#define POWERUPS 2
 
 
 void HelloWorld::createScrollingTargets(cocos2d::Size visibleSize,
@@ -411,38 +423,75 @@ void HelloWorld::createScrollingTargets(cocos2d::Size visibleSize,
     /*******************
      0 = nuts
      1 = hurdles
-     2 = collectables
-     3 = powerups
+     2 = powerups
      ******************/
     
     isSheilded = false; // initially no sheilds
     
     _collectables = new Vector<Sprite *>();
-    _nuts = new Vector<Sprite *>();
+    _nuts = new Vector<Sprite *>();    
+    _hurdles = new Vector<Sprite *>();
     
-    for(int i = 0; i < KNUMCOLLECTABLES; ++i) {
+    for(int i = 0; i < KNUMNUTS; ++i) {
         auto nut = Sprite::create("nut.png");
-        nut->setTag(0);
+        nut->setTag(NUTS);
         nut->setVisible(false);
         this->addChild(nut, 2);
         _nuts->pushBack(nut);
     }
     
-    for(int i = 0; i < KNUMHURDLES; ++i) {
-        auto star = Sprite::create("star.png");
-        star->setTag(1);
-        star->setVisible(false);
-        this->addChild(star, 2);
-        _collectables->pushBack(star);
-    }
+    
+    
+    
     
     for(int i = 0; i < KNUMPOWERUPS; ++i) {
         auto sheild = Sprite::create("shield.png");
-        sheild->setTag(3);
+        sheild->setTag(POWERUPS);
         sheild->setVisible(false);
         this->addChild(sheild, 1);
         _collectables->pushBack(sheild);
     }
+    _nextCollectableSpawn = 90000; // we don't want power ups to appear immediately
+    
+    
+    
+    
+//    Vector<SpriteFrame*> animFrames(11);
+//    char str[100] = {0};
+//    for(int i = 1; i < 11; i++)
+//    {
+//        sprintf(str, "birdAmin00%02d.png",i);
+//        auto frame = SpriteFrame::create(str,Rect(0,0,60,70)); //we assume that the sprites' dimentions are 60*70 rectangles.
+//        animFrames.pushBack(frame);
+//    }
+//    
+//    auto animation = Animation::createWithSpriteFrames(animFrames, 0.2f);
+//    animation->setLoops(-1);
+//    animation->setDelayPerUnit(0.05);
+//    _animateBird = Animate::create(animation);
+    
+    
+    for(int i = 0; i < KNUMHURDLES; ++i) {
+        auto bird = Sprite::create("birdAmin0000.png");
+        bird->setTag(HURDLES);
+        bird->setVisible(false);
+        bird->setFlippedX(true);
+        this->addChild(bird, 2);
+        _hurdles->pushBack(bird);
+    }
+    
+//    for(int i = 0; i < KNUMHURDLES; ++i) {
+//        auto star = Sprite::create("star.png");
+//        star->setTag(HURDLES);
+//        star->setVisible(false);
+//        this->addChild(star, 2);
+//        _hurdles->pushBack(star);
+//    }
+//    
+    
+    
+    
+    
 }
 
 
@@ -454,134 +503,95 @@ void HelloWorld::updateTargets(float dt){
     float curTimeMillis = getTimeTick();
     
     
-    if (curTimeMillis > _nextNutSpawn) { // time has come to spawn new collectable
-        float randMillisecs = randomValueBetween(2.0, 5.0) * 1000; // (0.20 , 1.0)
+    if (curTimeMillis > _nextNutSpawn) {
+        // time has come to spawn new nut
+        float randMillisecs = randomValueBetween(4.0, 6.0) * 1000; // (0.20 , 1.0)
         _nextNutSpawn = randMillisecs + curTimeMillis;
         
         auto heightNut = ((Sprite *)_nuts->at(0))->getBoundingBox().size.height;
         auto widthNut = ((Sprite *)_nuts->at(0))->getBoundingBox().size.width;
         
         float randY = randomValueBetween(heightNut*2, visibleSize.height - heightNut*2); // bottom and top || (0 , maxheight)
-        float randDuration =  2.0;//<--Lets use fixed duration for now || randomValueBetween(2.0,10.0);
+        float randDuration =  06.0;//<--Lets use fixed duration for now || randomValueBetween(2.0,10.0);
         
-        float randCount = randomValueBetween(4, 9); // for number of nuts only
+        float randCount = randomValueBetween(3, 9); // for number of nuts only
         
-        // now make a diamond shaped pattern for nuts (spawn 5 at a time, for example)
+        // now make a diamond / square / rectangle shaped pattern for nuts (spawn 5 at a time, for example)
         
         ///////////////////////////////////////////
         // first make rect for diamond of 9 cells
         // 0 = nut is not present
         // 1 = nut is present
-        /**************
-         *  abc  abc
-         1  000  010
-         2  000  111
-         3  000  010
-         *
-         **************/
+        //////////////////////////////////////////
+        
+         /*************\
+         *  abc  abc  *
+         1  000  010  1
+         2  000  111  2
+         3  000  010  3
+         *  abc  abc  *
+         \*************/
+        
+        //////////////////////////////////////////////////////////////////////////////
         // Let's define positions
-        //////////////////////////
-        auto a1 = Vec2(visibleSize.width+widthNut, randY + heightNut);
-        auto b1 = Vec2(visibleSize.width+widthNut*2, randY + heightNut);
-        auto c1 = Vec2(visibleSize.width+widthNut*3, randY + heightNut);
+        //////////////////////////////////////////////////////////////////////////////
         
-        auto a2 = Vec2(visibleSize.width+widthNut, randY);
-        auto b2 = Vec2(visibleSize.width+widthNut*2, randY);
-        auto c2 = Vec2(visibleSize.width+widthNut*3, randY);
+        //        auto a1 = Vec2(visibleSize.width+widthNut, randY + heightNut);
+        //        auto b1 = Vec2(visibleSize.width+widthNut*2, randY + heightNut);
+        //        auto c1 = Vec2(visibleSize.width+widthNut*3, randY + heightNut);
+        //
+        //        auto a2 = Vec2(visibleSize.width+widthNut, randY);
+        //        auto b2 = Vec2(visibleSize.width+widthNut*2, randY);
+        //        auto c2 = Vec2(visibleSize.width+widthNut*3, randY);
+        //
+        //        auto a3 = Vec2(visibleSize.width+widthNut, randY - heightNut);
+        //        auto b3 = Vec2(visibleSize.width+widthNut*2, randY - heightNut);
+        //        auto c3 = Vec2(visibleSize.width+widthNut*3, randY - heightNut);
         
-        auto a3 = Vec2(visibleSize.width+widthNut, randY - heightNut);
-        auto b3 = Vec2(visibleSize.width+widthNut*2, randY - heightNut);
-        auto c3 = Vec2(visibleSize.width+widthNut*3, randY - heightNut);
+        ////////////////////////////////////////////////////////////////////////////////
+
+        int rows = 3;
+        int cols = 3;
         
+        auto cordinates = new Vector<coordinates *>(randCount);
         
-//        Vector<Vec2> positions(9);
-//        positions.pushBack(a1);
-//        positions.pushBack(a2);
-//        positions.pushBack(a3);
-//        
-//        positions.pushBack(b1);
-//        positions.pushBack(b2);
-//        positions.pushBack(b3);
-//        
-//        positions.pushBack(c1);
-//        positions.pushBack(c2);
-//        positions.pushBack(c3);
+        for (int i = 0; i < rows; i++){
+            randY = randY + heightNut * (i - 1); // only valid for 3 x 3 matrix
+            for (int j = 0; j < cols; j++) {
+                //
+                auto cord = new coordinates();
+                cord->setPositon(visibleSize.width+widthNut*(j+1), randY); // optimise this section
+                cordinates->pushBack(cord);
+            }
+        }
+
+        // Keep generating nuts
+        for (_nextNut = 0; _nextNut <= randCount; _nextNut++) {
+            Sprite *nut = (Sprite *)_nuts->at(_nextNut);
+            nut->stopAllActions();
+            auto position = ((coordinates* ) cordinates->at(_nextNut))->getPosition();
+            nut->setPosition(position);
+            nut->setVisible(true);
+            nut->runAction(Sequence::create(
+                                            MoveBy::create(randDuration, Vec2(-visibleSize.width-nut->getContentSize().width*cols, 0)),
+                                            CallFuncN::create(CC_CALLBACK_1(HelloWorld::setInvisible, this)),
+                                            NULL // DO NOT FORGET TO TERMINATE WITH NULL (unexpected in C++)
+                                            ));
+        } // end for //
         
-        _nextNut = 0;
-        
-//        for (int i = 0; i < randCount; i++) {
-        
-        // keep generating nuts
-        Sprite *collectable1 = (Sprite *)_nuts->at(_nextNut);
-        _nextNut++;
-        collectable1->stopAllActions();
-        collectable1->setPosition(b1);
-        collectable1->setVisible(true);
-        collectable1->runAction(Sequence::create(
-                                                MoveBy::create(randDuration, Vec2(-visibleSize.width-collectable1->getContentSize().width, 0)),
-                                                CallFuncN::create(CC_CALLBACK_1(HelloWorld::setInvisible, this)),
-                                                NULL // DO NOT FORGET TO TERMINATE WITH NULL (unexpected in C++)
-                                                ));
-        
-        Sprite *collectable2 = (Sprite *)_nuts->at(_nextNut);
-        _nextNut++;
-        collectable2->stopAllActions();
-        collectable2->setPosition(a2);
-        collectable2->setVisible(true);
-        collectable2->runAction(Sequence::create(
-                                                MoveBy::create(randDuration, Vec2(-visibleSize.width-collectable1->getContentSize().width, 0)),
-                                                CallFuncN::create(CC_CALLBACK_1(HelloWorld::setInvisible, this)),
-                                                NULL // DO NOT FORGET TO TERMINATE WITH NULL (unexpected in C++)
-                                                ));
-        
-        Sprite *collectable3 = (Sprite *)_nuts->at(_nextNut);
-        _nextNut++;
-        collectable3->stopAllActions();
-        collectable3->setPosition(b2);
-        collectable3->setVisible(true);
-        collectable3->runAction(Sequence::create(
-                                                MoveBy::create(randDuration, Vec2(-visibleSize.width-collectable1->getContentSize().width, 0)),
-                                                CallFuncN::create(CC_CALLBACK_1(HelloWorld::setInvisible, this)),
-                                                NULL // DO NOT FORGET TO TERMINATE WITH NULL (unexpected in C++)
-                                                ));
-        
-        Sprite *collectable4 = (Sprite *)_nuts->at(_nextNut);
-        _nextNut++;
-        collectable4->stopAllActions();
-        collectable4->setPosition(b3);
-        collectable4->setVisible(true);
-        collectable4->runAction(Sequence::create(
-                                                MoveBy::create(randDuration, Vec2(-visibleSize.width-collectable1->getContentSize().width, 0)),
-                                                CallFuncN::create(CC_CALLBACK_1(HelloWorld::setInvisible, this)),
-                                                NULL // DO NOT FORGET TO TERMINATE WITH NULL (unexpected in C++)
-                                                ));
-        
-        Sprite *collectable5 = (Sprite *)_nuts->at(_nextNut);
-        _nextNut++;
-        collectable5->stopAllActions();
-        collectable5->setPosition(c2);
-        collectable5->setVisible(true);
-        collectable5->runAction(Sequence::create(
-                                                MoveBy::create(randDuration, Vec2(-visibleSize.width-collectable1->getContentSize().width, 0)),
-                                                CallFuncN::create(CC_CALLBACK_1(HelloWorld::setInvisible, this)),
-                                                NULL // DO NOT FORGET TO TERMINATE WITH NULL (unexpected in C++)
-                                                ));
-        
-        _nextNut = 0;
-        
-        
-//        } // end for //
     }
         
-        
+    
+    /////////////////////////////////////////////////////////////////////////////////
+    // Create collectables (like power ups) and hurdles
+    
     if (curTimeMillis > _nextCollectableSpawn) { // time has come to spawn new collectable
 
-
-        float randMillisecs = randomValueBetween(0.20 , 1.0) * 1000; // (0.20 , 1.0)
+        float randMillisecs = randomValueBetween(5.0, 15.0) * 1000;
         _nextCollectableSpawn = randMillisecs + curTimeMillis;
 
         float randY = randomValueBetween(20 , visibleSize.height - 20);
-        float randDuration =  randomValueBetween(8.0, 5.0);
+        float randDuration = 2.0; // randomValueBetween(8.0, 5.0);
 
         Sprite *collectable = (Sprite *)_collectables->at(_nextCollectable);
         _nextCollectable++;
@@ -589,26 +599,75 @@ void HelloWorld::updateTargets(float dt){
         if (_nextCollectable >= _collectables->size())
         _nextCollectable = 0;
 
-        collectable->stopAllActions();
-        collectable->setPosition( Vec2(visibleSize.width+collectable->getContentSize().width/2, randY));
-        collectable->setVisible(true);
-        collectable->runAction(Sequence::create(
-                                    MoveBy::create(randDuration, Vec2(-visibleSize.width-collectable->getContentSize().width, 0)),
-                                    CallFuncN::create(CC_CALLBACK_1(HelloWorld::setInvisible, this)),
-                                    NULL // DO NOT FORGET TO TERMINATE WITH NULL (unexpected in C++)
-                                    ));//create(this, callfuncN_selector(HelloWorld::setInvisible)
+        // In case of Sheild is already visible on the stage or equiped by the actor, do not appear
+        if (collectable->getTag() == POWERUPS && !isSheilded && !isSheildVisible) {
+            collectable->stopAllActions();
+            collectable->setPosition( Vec2(visibleSize.width+collectable->getContentSize().width/2, randY));
+            collectable->setVisible(true);
+            collectable->runAction(Sequence::create(
+                                                    MoveBy::create(randDuration, Vec2(-visibleSize.width-collectable->getContentSize().width*3, 0)),
+                                                    CallFuncN::create(CC_CALLBACK_1(HelloWorld::setInvisible, this)),
+                                                    NULL // DO NOT FORGET TO TERMINATE WITH NULL (unexpected in C++)
+                                                    ));//create(this, callfuncN_selector(HelloWorld::setInvisible)
+        }
+    }
+    
+    ///////////////////////////////////////////////////////////////
+    /// Create new hurdles
+    ///////////////////////////////////////////////////////////////
+    if (curTimeMillis > _nextHurdleSpawn) { // time has come to spawn new hurdles
+        
+        float randMillisecs = randomValueBetween(1.0 , 5.0) * 1000; // (0.20 , 1.0)
+        _nextHurdleSpawn = randMillisecs + curTimeMillis;
+        
+        float randY = randomValueBetween(20 , visibleSize.height - 20);
+        float randH = randomValueBetween(0 , visibleSize.height);
+        float randDuration = 8.0;// randomValueBetween(10.0, 18.0);
+        
+        Sprite *hurdle = (Sprite *)_hurdles->at(_nextHurdle);
+        _nextHurdle++;
+        
+        if (_nextHurdle >= _hurdles->size())
+            _nextHurdle = 0;
+        
+        // In case of Sheild, do not appear if another sheild is already visible on the stage or equiped by the actor
+        hurdle->stopAllActions();
+        
+        //---------------------------------
+        Vector<SpriteFrame*> animFrames(11);
+        char str[100] = {0};
+        for(int i = 1; i < 11; i++)
+        {
+            sprintf(str, "birdAmin00%02d.png",i);
+            auto frame = SpriteFrame::create(str,Rect(0,0,60,70)); //we assume that the sprites' dimentions are 60*70 rectangles.
+            animFrames.pushBack(frame);
+        }
+        
+        auto animation = Animation::createWithSpriteFrames(animFrames, 0.2f);
+        animation->setLoops(-1);
+        animation->setDelayPerUnit(0.05);
+        auto animate = Animate::create(animation);
+        hurdle->runAction(animate);
+        //----------------------------------
+        
+        hurdle->setPosition( Vec2(visibleSize.width+hurdle->getContentSize().width/2, randY));
+        hurdle->setVisible(true);
+        hurdle->runAction(Sequence::create(MoveTo::create(randDuration, Vec2(origin.x - visibleSize.width, randH)),
+                                           CallFuncN::create(CC_CALLBACK_1(HelloWorld::setInvisible, this)), NULL) // DO NOT FORGET TO TERMINATE WITH NULL (unexpected in C++)
+                                                );
     }
     
     
-    ///////////////////--------------------------------------------------//////////////////
+    ///////////////////------------------COLLISION DETECTION---------------------//////////////////
     
     // for each nuts, hide when touched
     for (auto nut: *_nuts) {
         if (!((Sprite *) nut)->isVisible() )
             continue;
         // pp collision detection
-        if (CollisionDetection::GetInstance()->areTheSpritesColliding(actor->_sprite, (Sprite *)nut, false, _rt)) {
-            if (((Sprite *)nut)->getTag() == 0) { // nut
+        if (CollisionDetection::getInstance()->collidesWithSpriteHavingRadius(
+            actor->_sprite, _playerCollisionRadius, (Sprite *)nut, ((Sprite *)nut)->getBoundingBox().size.width/2)) {
+            if (((Sprite *)nut)->getTag() == NUTS) { // nut
                 // it's a nut
                 _nutscore++;
                 _lnuts->setString(std::to_string(_nutscore));
@@ -623,41 +682,20 @@ void HelloWorld::updateTargets(float dt){
         }
     }
     
-    // for each collectables,hide when touched
-    for (auto collectable : *_collectables) {
+    
+    
+    // for each powerups, start effect and hide when touched
+    for (auto collectable: *_collectables) {
         if (!((Sprite *) collectable)->isVisible() )
             continue;
-        
         // pp collision detection
-        if (CollisionDetection::GetInstance()->areTheSpritesColliding(actor->_sprite, (Sprite *)collectable, false, _rt)) {
-            if (((Sprite *)collectable)->getTag() == 1){ // hurdle
-                if (!isSheilded) {
-                    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("pew.wav");
-                    actor->_sprite->runAction( Blink::create(1.0, 9));
-                    _lives--;
-                    _llives->setString(" x " + std::to_string(_lives));
-                    // game over!!
-                    if (_lives == 0) {
-                        // Show score & Game over scene with restart button
-                        this->gameOver();
-                        break;
-                    }
-                }
-                else {
-                    // explode stars
-                    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("click.wav");
-                    auto destroyStar = ParticleExplosion::createWithTotalParticles(4);
-                    destroyStar->setPosition(((Sprite *)collectable)->getPosition());
-                    this->addChild(destroyStar);
-                    _score = _score+2;
-                }
-            }
-            if (((Sprite *)collectable)->getTag() == 3) { // power up
+        if (CollisionDetection::getInstance()->collidesWithSpriteHavingRadius(
+                                                                              actor->_sprite, _playerCollisionRadius, (Sprite *)collectable, ((Sprite *)collectable)->getBoundingBox().size.width/2)){
+            if (((Sprite *)collectable)->getTag() == POWERUPS) { // power up
                 // it's a sheild
-                //                    _lives++;
-                auto oldtint = actor->_sprite->getColor();
+                // _lives++;
                 auto sheildedEffect = Sequence::create(TintTo::create(0.5, 256, 100, 100),
-                                                       TintTo::create(0.5, oldtint.r, oldtint.g, oldtint.b), NULL);
+                                                       TintTo::create(0.5, _oldtint.r, _oldtint.g, _oldtint.b), NULL);
                 
                 actor->_sprite->runAction(
                                           Sequence::create(
@@ -666,7 +704,52 @@ void HelloWorld::updateTargets(float dt){
                 isSheilded = true;
                 CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("powerup.wav");
             }
-            ((Sprite *)collectable)->setVisible(false);
+            
+            ((Sprite *) collectable)->setVisible(false);
+        }
+    }
+    
+    
+    
+    // for each collectables,hide when touched
+    for (auto hurdle : *_hurdles) {
+        if (!((Sprite *) hurdle)->isVisible() )
+            continue;
+        
+        // pp collision detection
+        if (CollisionDetection::getInstance()->collidesWithSpriteHavingRadius(
+                                                                              actor->_sprite, _playerCollisionRadius, (Sprite *)hurdle, ((Sprite *)hurdle)->getBoundingBox().size.width/2))
+//            areTheSpritesColliding(actor->_sprite, (Sprite *)hurdle, true, _rt))
+        {
+            if (((Sprite *)hurdle)->getTag() == 1){ // hurdle
+                if (!isSheilded) {
+                    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("pew.wav");
+                    _lives--;
+                    _llives->setString(" x " + std::to_string(_lives));
+                    // game over!!
+                    if (_lives == 0) {
+                        // Show score & Game over scene with restart button
+                        CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
+                        this->runAction(Sequence::create(
+                                                         CallFunc::create(CC_CALLBACK_0(HelloWorld::stopEverythingMoving, this)),
+                                                         DelayTime::create(1),
+                                                         CallFunc::create(CC_CALLBACK_0(HelloWorld::gameOver, this)), NULL));
+                        break;
+                    }
+                    actor->_sprite->runAction(Sequence::createWithTwoActions(Blink::create(1.0, 9),
+                                                                             CallFunc::create(CC_CALLBACK_0(HelloWorld::setVisible, this))));
+                }
+                else {
+                    // explode stars
+                    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("click.wav");
+                    auto destroyStar = ParticleExplosion::createWithTotalParticles(4);
+                    destroyStar->setPosition(((Sprite *)hurdle)->getPosition());
+                    this->addChild(destroyStar);
+                    _score = _score+2;
+                }
+            }
+            
+            ((Sprite *)hurdle)->setVisible(false);
         }
     }
 }
@@ -678,6 +761,8 @@ void HelloWorld::removeSheildEffect() {
 
 
 void HelloWorld::setInvisible(Node * node) {
+    if(node->getTag() == POWERUPS)
+        isSheildVisible = false;
     node->setVisible(false);
 }
 
@@ -701,14 +786,14 @@ float HelloWorld::getTimeTick() {
 
 void HelloWorld::gameOver(){
     // stop music loop and play for game over
-    CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
-    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("gameover.wav");
+    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("invalid.wav");
     
     // stop everything moving
     actor->_sprite->stopAllActions();
     this->unscheduleUpdate();
     GameOverScene *gameOverScene = GameOverScene::create();
-    gameOverScene->getLayer()->getLabel()->setString(" x 0" + std::to_string(_score));
+    gameOverScene->getLayer()->getLabel()->setString(" x 0" + std::to_string(_nutscore));
+    gameOverScene->getLayer()->_score->setString("Total Score: " + std::to_string(_score));
     
     auto transition = TransitionSplitRows::create(1.0f, gameOverScene);
     CCDirector::getInstance()->pushScene(transition);//replaceScene(transition);
@@ -727,18 +812,12 @@ void HelloWorld::mainMenu(Ref* pSender) {
     CCDirector::getInstance()->replaceScene(scene);
 }
 
-void HelloWorld::pauseGame(Ref* pSender) {
+
+
+
+void HelloWorld::stopEverythingMoving(){
     CocosDenshion::SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
-    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
-    
-    
-    _label->setVisible(true);
-    
-    // show resume button
-    _pauseItem->setVisible(false);
-    _playItem->setVisible(true);
-    _backItem->setVisible(true);
-    
+    CocosDenshion::SimpleAudioEngine::getInstance()->pauseAllEffects();
     actor->pause();
     actor->_sprite->pause();
     
@@ -750,16 +829,37 @@ void HelloWorld::pauseGame(Ref* pSender) {
         _nuts->at(i)->pause();
     }
     
-    this->pause();
+    for (int i = 0; i < _hurdles->size(); i++) {
+        _hurdles->at(i)->pause();
+    }
+    isPaused = true;
+}
+
+
+void HelloWorld::pauseGame(Ref* pSender) {
+    this->stopEverythingMoving();
+    
+    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
+    
+    _label->setVisible(true);
+    
+    // show resume button
+    _pauseItem->setVisible(false);
+    _playItem->setVisible(true);
+    _backItem->setVisible(true);
+    
     
     pausescreenbartop->runAction(Sequence::create(MoveTo::create(0.2,
                                                                  Vec2(0, visibleSize.height - pausescreenbartop->getContentSize().height)), NULL));
     pausescreenbarbot->runAction(MoveTo::create(0.2,
                                                 Vec2(0, 0)));
+    
+    this->pause();
 }
 
 void HelloWorld::resumeGame(Ref* pSender) {
     CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
+    CocosDenshion::SimpleAudioEngine::getInstance()->resumeAllEffects();
     CocosDenshion::SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
     
     
@@ -769,8 +869,6 @@ void HelloWorld::resumeGame(Ref* pSender) {
                                                 Vec2(0, - pausescreenbarbot->getContentSize().height)));
     
     _label->setVisible(false);
-    
-    
     
     
     // show pause button
@@ -790,11 +888,20 @@ void HelloWorld::resumeGame(Ref* pSender) {
         _nuts->at(i)->resume();
     }
     
+    
+    for (int i = 0; i < _hurdles->size(); i++) {
+        _hurdles->at(i)->resume();
+    }
+    
+    isPaused = false;
     this->resume();
 }
 
 
 
+void HelloWorld::setVisible(){
+    this->actor->_sprite->setVisible(true);
+}
 
 
 

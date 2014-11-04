@@ -76,39 +76,41 @@ bool GameOverLayer::init()
         _label->setColor( Color3B(255, 255, 255) );
         this->addChild(_label);
         _label->setPosition(
-                            Vec2(visibleSize.width/2 + nutboard->getContentSize().width/4,
+                            Vec2(visibleSize.width/2 + nutboard->getContentSize().width/5,
                                  visibleSize.height  - label->getContentSize().height - nutboard->getContentSize().height - 5));
         
         
         
         // Title
-//        auto score = Label::createWithSystemFont("Score = "+ std::to_string(_score), "Arial", 24);
-//        
-//        
-//        // position the label on the center of the screen
-//        score->setPosition(
-//                           Vec2(origin.x + visibleSize.width / 2,
-//                                visibleSize.height - score->getContentSize().height));
-//        this->addChild(score);
+        _score = Label::createWithSystemFont("", "Arial", 24);
+        
+        
+        // position the label on the center of the screen
+        _score->setPosition(
+                           Vec2(origin.x + visibleSize.width / 2,
+                                visibleSize.height/2 + _score->getContentSize().height/2 - nutboard->getContentSize().height/2));
+        this->addChild(_score);
+        
+        
         
         // Menu items
         auto menuItem = MenuItemImage::create("btn_menu.png",
                                                "btn_menu.png",
                                                callfunc_selector(GameOverLayer::mainMenu));
         
-        menuItem->setPosition(Vec2(visibleSize.width/2 - menuItem->getContentSize().width - 10, visibleSize.height/4));
+        menuItem->setPosition(Vec2(visibleSize.width/2 - menuItem->getContentSize().width - 10, menuItem->getContentSize().height/2));
         
         auto restartItem = MenuItemImage::create("btn_restart.png",
                                                "btn_restart.png",
                                                callfunc_selector(GameOverLayer::restartGame));
         
-        restartItem->setPosition(Vec2(visibleSize.width/2, visibleSize.height/4));
+        restartItem->setPosition(Vec2(visibleSize.width/2, restartItem->getContentSize().height/2));
         
         auto closeItem = MenuItemImage::create("btn_quit.png",
                                                "btn_quit.png",
                                                callfunc_selector(GameOverLayer::quitGame));
         
-        closeItem->setPosition(Vec2(visibleSize.width/2 + closeItem->getContentSize().width +10, visibleSize.height/4));
+        closeItem->setPosition(Vec2(visibleSize.width/2 + closeItem->getContentSize().width +10, closeItem->getContentSize().height/2));
 
         
             // create menu, it's an autorelease object
