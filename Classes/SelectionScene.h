@@ -12,35 +12,28 @@
 #include "cocos2d.h"
 USING_NS_CC;
 
-class SelectionLayer : public cocos2d::Layer //LayerColor
+class SelectionScene : public cocos2d::Layer
 {
 public:
-	SelectionLayer():_label(NULL) {};
-    virtual ~SelectionLayer();
-    bool init();
-    CREATE_FUNC(SelectionLayer);
+    
+    // there's no 'id' in cpp, so we recommend returning the class instance pointer
+    static cocos2d::Scene* createScene();
+    
+    // Here's a difference. Method 'init' in cocos2d-x returns bool, instead of returning 'id' in cocos2d-iphone
+    virtual bool init();
+    
+    CREATE_FUNC(SelectionScene);
     
     void nextCharacter();
     void prevCharacter();
+    void characterList();
     void startGame();
     void mainMenu();
     
-    Vector<Sprite *> characters;
-    cocos2d::Label * _score;
-    
-    CC_SYNTHESIZE_READONLY(cocos2d::Label*, _label, Label);
-    
-};
-
-class SelectionScene : public cocos2d::Scene
-{
-public:
-	SelectionScene():_layer(NULL) {};
-    ~SelectionScene();
-    bool init();
-    CREATE_FUNC(SelectionScene);
-    
-    CC_SYNTHESIZE_READONLY(SelectionLayer*, _layer, Layer);
+private:
+    Vector<Sprite *> *_players;
+    int currentCharacter;
+    Label * _label;
     
 };
 

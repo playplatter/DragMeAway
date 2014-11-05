@@ -22,12 +22,13 @@ public:
     // Here's a difference. Method 'init' in cocos2d-x returns bool, instead of returning 'id' in cocos2d-iphone
     virtual bool init();
     
+    // implement the "static create()" method manually
+    CREATE_FUNC(MainMenu);
+    
     // selector callbacks
     void menuCloseCallback(cocos2d::Ref* pSender);
     void menuStartCallback(cocos2d::Ref* pSender);
     
-    // implement the "static create()" method manually
-    CREATE_FUNC(MainMenu);
 };
 
 #endif /* defined(__DragMeAway__MainMenuScene__) */

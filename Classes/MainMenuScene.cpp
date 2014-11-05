@@ -8,6 +8,7 @@
 
 #include "MainMenuScene.h"
 #include "HelloWorldScene.h"
+#include "SelectionScene.h"
 #include "TouchableSpriteLayer.h"
 #include "SimpleAudioEngine.h"
 
@@ -128,7 +129,8 @@ void MainMenu::menuStartCallback(Ref* pSender) {
     CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
     
     // create a scene. it's an autorelease object
-    auto scene = HelloWorld::createScene();
+//    auto scene = HelloWorld::createScene();
+    auto scene = SelectionScene::createScene();
     
     // Start the game
     Director::getInstance()->pushScene(scene);
