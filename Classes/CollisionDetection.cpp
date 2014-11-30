@@ -22,12 +22,12 @@ _glProgram(nullptr),
 _rt(nullptr),
 _pixelReader(nullptr) {
     _glProgram = GLProgram::createWithFilenames(kVertexShader, kFragmentShader);
-    _glProgram->addAttribute(GLProgram::ATTRIBUTE_NAME_POSITION, GLProgram::VERTEX_ATTRIB_POSITION);
-    _glProgram->addAttribute(GLProgram::ATTRIBUTE_NAME_TEX_COORD, GLProgram::VERTEX_ATTRIB_TEX_COORD);
-    _glProgram->addAttribute(GLProgram::ATTRIBUTE_NAME_COLOR, GLProgram::VERTEX_ATTRIB_COLOR);
+    _glProgram->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_POSITION, GLProgram::VERTEX_ATTRIB_POSITION);
+    _glProgram->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_TEX_COORD, GLProgram::VERTEX_ATTRIB_TEX_COORD);
+    _glProgram->bindAttribLocation(GLProgram::ATTRIBUTE_NAME_COLOR, GLProgram::VERTEX_ATTRIB_COLOR);
     
-    const Size &size = Director::sharedDirector()->getWinSize();
-    _rt = RenderTexture::create(size.width, size.height, kCCTexture2DPixelFormat_RGBA8888);
+    const Size &size = Director::getInstance()->getWinSize();
+    _rt = RenderTexture::create(size.width, size.height, Texture2D::PixelFormat::RGBA8888);
     _pixelReader = PixelReaderNode::create(Point::ZERO);
     
     _glProgram->retain();
@@ -217,7 +217,7 @@ Point CollisionDetection::renderSprite(Sprite *sprite, CustomCommand &command, b
 }
 
 void CollisionDetection::resetSprite(Sprite *sprite, const Point &oldPosition) {
-    auto program = ShaderCache::sharedShaderCache()->programForKey(
+    auto program = ShaderCache::getInstance()->getGLProgram(
                                                                    GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR_NO_MVP);
     sprite->setGLProgram(program);
     sprite->setBlendFunc(BlendFunc::ALPHA_PREMULTIPLIED);

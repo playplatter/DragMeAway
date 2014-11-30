@@ -1,23 +1,36 @@
 #include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
-#include "TouchableSpriteLayer.h"
+#include "PlayerSpriteLayer.h"
 #include "GameOverScene.h"
 #include "CollisionDetection.h"
 #include "MainMenuScene.h"
-#include "coordinates.h"
+#include "Coordinates.h"
 
 
 
-const float hurdleCollisionRadius = 5.0f;
+//const float hurdleCollisionRadius = 5.0f;
 
 
 
 Scene* HelloWorld::createScene() {
+    
     // 'scene' is an autorelease object
-    auto scene = Scene::create();
+    auto scene = Scene::create();//WithPhysics();
+//    scene->getPhysicsWorld()->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
+    
+//    Size visibleSize = Director::getInstance()->getVisibleSize();
+
+//    auto body = PhysicsBody::createEdgeBox(visibleSize, PHYSICSBODY_MATERIAL_DEFAULT, 3);
+    
+//    auto edgeNode = Node::create();
+//    edgeNode->setPosition(Point(visibleSize.width/2,visibleSize.height/2));
+//    edgeNode->setPhysicsBody(body);
+    
+//    scene->addChild(edgeNode);
     
     // 'layer' is an autorelease object
     auto layer = HelloWorld::create();
+//    layer->setPhysicsWorld(scene->getPhysicsWorld());
     
     // add layer as a child to scene
     scene->addChild(layer);
@@ -48,32 +61,43 @@ bool HelloWorld::init() {
     
     
     
+
+    /////////////////////////
+    // Backgrounds
+    this->createScrollingBackground(visibleSize, origin);
+    
+    
+    ///////////////////////////////
+    // Add Targets and Enemies/hurdles
+    this->createScrollingTargets(visibleSize, origin);
+    
+    ///////////////////////////////
+    //	Add the background music in init().
+    CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic("dreamy.mp3", true);
+    
+    
+    ////////////////////////////////  ACTOR LAYER  ///////////////////////////////////
+    // add the touchable actor layer
+    actor = new PlayerSpriteLayer;
+    this->addChild(actor, 2);
+    actor->autorelease();
+    _oldtint = actor->_originalTint;
+    _playerCollisionRadius = actor->_collisionRadius;
+    
+    _lives = 3; // Set lives
+    
+    
+    
     
     /////////////////////////////////
     // Pause screen
-    pausescreenbartop = LayerColor::create(Color4B(0,0,0,200), visibleSize.width, visibleSize.height/2);
+    /////////////////////////////////
+    pausescreenbartop = LayerColor::create(Color4B(0,0,0,100), visibleSize.width, visibleSize.height/2);
     pausescreenbartop->setPosition(0, visibleSize.height);
-    this->addChild(pausescreenbartop, 3);
-    
-    pausescreenbarbot = LayerColor::create(Color4B(0,0,0,200), visibleSize.width, visibleSize.height/2);
+    this->addChild(pausescreenbartop, 1);
+    pausescreenbarbot = LayerColor::create(Color4B(0,0,0,100), visibleSize.width, visibleSize.height/2);
     pausescreenbarbot->setPosition(0, -pausescreenbarbot->getContentSize().height);
-    this->addChild(pausescreenbarbot, 3);
-    
-    
-    
-    
-    _label = Label::createWithSystemFont("Game Paused", "Arial", 24);
-    
-    // position the label on the center of the screen
-    _label->setPosition(
-                       Vec2(origin.x + visibleSize.width / 2,
-                            visibleSize.height - _label->getContentSize().height));
-    
-    // add the label as a child to this layer
-    this->addChild(_label, 3);
-    
-    _label->setVisible(false);
-    
+    this->addChild(pausescreenbarbot, 1);
     
     
     /////////////////////////////
@@ -82,49 +106,156 @@ bool HelloWorld::init() {
     
     // add a "close" icon to exit the progress. it's an autorelease object
     _backItem = MenuItemImage::create("btn_back.png",
-                                          "btn_back.png",
-                                          CC_CALLBACK_1(HelloWorld::mainMenu, this));
+                                      "btn_back.png",
+                                      CC_CALLBACK_1(HelloWorld::mainMenu, this));
     _backItem->setScale(0.7);
-    _backItem->setPosition(Vec2(_backItem->getContentSize().width/2 + 10, _backItem->getContentSize().height/2 + 10));
+    _backItem->setPosition(Vec2(_backItem->getBoundingBox().size.width/2 + 10,
+                                _backItem->getBoundingBox().size.height/2 + 10));
     
     _pauseItem = MenuItemImage::create("btn_pause.png",
-                                           "btn_pause.png",
-                                           CC_CALLBACK_1(HelloWorld::pauseGame, this));
+                                       "btn_pause.png",
+                                       CC_CALLBACK_1(HelloWorld::pauseGame, this));
     _pauseItem->setScale(0.7);
     _pauseItem->setPosition(
-                           Vec2(
-                                origin.x + visibleSize.width
-                                - _pauseItem->getContentSize().width / 2 - 10,
-                                origin.y + _pauseItem->getContentSize().height / 2 + 10));
+                            Vec2(
+                                 origin.x + visibleSize.width
+                                 - _pauseItem->getBoundingBox().size.width / 2 - 10,
+                                 origin.y + _pauseItem->getBoundingBox().size.height / 2 + 10));
     
     _playItem = MenuItemImage::create("btn_play.png",
-                                           "btn_play.png",
-                                           CC_CALLBACK_1(HelloWorld::resumeGame, this));
+                                      "btn_play.png",
+                                      CC_CALLBACK_1(HelloWorld::resumeGame, this));
     _playItem->setScale(0.7);
     _playItem->setPosition(
                            Vec2(
                                 origin.x + visibleSize.width
-                                - _playItem->getContentSize().width / 2 - 10,
-                                origin.y + _playItem->getContentSize().height / 2 + 10));
+                                - _playItem->getBoundingBox().size.width / 2 - 10,
+                                origin.y + _playItem->getBoundingBox().size.height / 2 + 10));
     
     
     _playItem->setVisible(false);
     _backItem->setVisible(false);
     
+    
     // create menu, it's an autorelease object
     auto menu = Menu::create(_pauseItem, _backItem, _playItem, NULL);
     menu->setPosition(Vec2::ZERO);
-    this->addChild(menu, 3);
+    this->addChild(menu,1);
+    
+    /////////////////////////
+    // Label to show at pause screen
+    /////////////////////////
+    _label = Label::createWithSystemFont("Game Paused", "Arial", 24); //Click play button to start the game.
+    _label->setPosition(
+                        Vec2(origin.x + visibleSize.width / 2,
+                             visibleSize.height - _label->getContentSize().height)); // position the label on the center of the screen
+    this->addChild(_label, 3); // add the label as a child to this layer
+    _label->setVisible(false);
     
     
     
+    this->showHint();
+    
+    
+    
+    
+    auto contactListener = EventListenerPhysicsContact::create();
+    contactListener->onContactBegin = CC_CALLBACK_1(HelloWorld::onContactBegin, this);
+    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(contactListener, this);
+    
+    
+    return true;
+}
+
+
+bool HelloWorld::onContactBegin(cocos2d::PhysicsContact &contact){
+    PhysicsBody *a = contact.getShapeA()->getBody();
+    PhysicsBody *b = contact.getShapeB()->getBody();
+    
+    // check if the bodies are collided
+    if ((1 == a->getCollisionBitmask() && 2 == b->getCollisionBitmask()) || (2 == a->getCollisionBitmask() && 1 == b->getCollisionBitmask())) {
+        CCLOG("collision has occurred");
+    }
+    
+    return true;
+}
+
+
+
+void HelloWorld::update(float dt) {
+    if (!isPaused) {
+        this->updateBackground(dt);
+        this->updateNuts(dt);
+        if (shouldSpawn) {
+            this->updateTargets(dt);
+            this->updateCollectables(dt);
+        }
+    }
+}
+
+
+
+void HelloWorld::showHint(){
+    ///////////////////////////////
+    // add Hint image
+    
+    _hintSprite = Sprite::create("hints.png");
+    
+    // position the sprite on the center of the screen
+    _hintSprite->setPosition(
+                     Vec2(origin.x + visibleSize.width / 2,
+                          origin.y + visibleSize.height / 2));
+    
+    _hintSprite->setScale(0.41);
+    this->addChild(_hintSprite, 1);
+    
+    shouldSpawn = false;
+    this->stopAllActions();
+    this->runAction(Sequence::create(DelayTime::create(5),CallFunc::create(CC_CALLBACK_0(HelloWorld::hideHint, this)), NULL));
+    
+    // tap to hide
+    // listen for touch events
+    _listener = EventListenerTouchAllAtOnce::create();
+    _listener->onTouchesBegan = CC_CALLBACK_2(self::onTouchesBegan, this);
+    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(_listener, this);
+
+}
+
+
+void HelloWorld::onTouchesBegan(const std::vector<Touch*>& touches, Event* event)
+{
+    // reset touch offset
+    this->touchOffset = Point::ZERO;
+    for( auto touch : touches )
+    {
+        // if this touch is within our sprite's boundary
+        if( touch && actor->isTouchingSprite(touch) )
+        {
+            hideHint();
+        }
+    }
+}
+
+void HelloWorld::hideHint(){
+    this->getEventDispatcher()->removeEventListener(_listener);
+    _hintSprite->setVisible(false);
     
     /////////////////////////////
     // add a top bar that shows "Score", collected coins and fruits
     this->createTopbarStats(visibleSize, origin);
     
-    
-    
+    this->stopAllActions();
+    this->scheduleUpdate();
+    this->runAction(Sequence::create(DelayTime::create(5),CallFunc::create(CC_CALLBACK_0(HelloWorld::startSpawning, this)), NULL));
+}
+
+void HelloWorld::startSpawning(){
+    shouldSpawn = true;
+}
+
+
+void HelloWorld::createScrollingBackground(cocos2d::Size visibleSize,
+                                           cocos2d::Vec2 origin) {
     
     
     ///////////////////////////////
@@ -138,91 +269,16 @@ bool HelloWorld::init() {
     
     this->addChild(sky, -1);
     
-    
-
-    
-    
     //////////////////////////////
     // add a scrolling background
-    _grass = Sprite::create("Roads.png");
+    _grass = Sprite::create("roads.png");
     _grass->setPosition(visibleSize.width/2, 0);
     this->addChild(_grass, 0);
     
-    this->createScrollingBackground(visibleSize, origin);
-    
-    
-    
-    ////////////////////////////////
-    // add the touchable actor layer
-    actor = new TouchableSpriteLayer;
-    this->addChild(actor, 2);
-    _oldtint = actor->_sprite->getColor();
-    actor->release(); // addChild() retained so we release
-    _playerCollisionRadius = actor->_sprite->getBoundingBox().size.width/3;
-    
-    
-    ////////////////////////////////
-    // Set lives
-    _lives = 3;
-    
-    
     ///////////////////////////////
-    // Add Targets and Enemies/hurdles
-    this->createScrollingTargets(visibleSize, origin);
-    
-    
-    
-    ////////////////////////////////
-    // pixel perfect collision detection
-//    _rt = RenderTexture::create(visibleSize.width *2, visibleSize.height *2);
-//    _rt->setPosition(Vec2(visibleSize.width, visibleSize.height));
-//    _rt->retain();
-//    _rt->setVisible(false);
-    
-    
-    //////////////////////////////////
-    // Enable Touch Sensor
-    // listen for touch events
-    //    auto listener = EventListenerTouchAllAtOnce::create();
-    //    listener->onTouchesBegan = CC_CALLBACK_2(self::onTouchesBegan, this);
-    //    listener->onTouchesMoved = CC_CALLBACK_2(self::onTouchesMoved, this);
-    //    listener->onTouchesEnded = CC_CALLBACK_2(self::onTouchesEnded, this);
-    //    listener->onTouchesCancelled = CC_CALLBACK_2(self::onTouchesEnded, this);
-    //    this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
-    
-    
-    ///////////////////////////////
-    //	Add the background music in init().
-    CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic("backgroundmusic.wav", true);
-    return true;
-}
-
-
-
-
-
-void HelloWorld::update(float dt) {
-    
-    if (!isPaused) {
-        this->updateBackground(dt);
-        this->updateTargets(dt);
-    }
-}
-
-
-
-
-
-
-
-
-
-void HelloWorld::createScrollingBackground(cocos2d::Size visibleSize,
-                                           cocos2d::Vec2 origin) {
-    
     //Create the CCParallaxNode
     _backgroundNode = ParallaxNodeExtras::create(); //1
-    this->addChild(_backgroundNode, -1);
+    this->addChild(_backgroundNode);
     
     // add "HelloWorld" sliding background
     _background1 = Sprite::create("cloud4.png");
@@ -234,6 +290,31 @@ void HelloWorld::createScrollingBackground(cocos2d::Size visibleSize,
     _background3->setScale(0.5, 0.5);
     _background4->setScale(0.5, 0.5);
     
+    
+    _street3 = Sprite::create("street04.png");
+    _street4 = Sprite::create("street05.png");
+    _street5 = Sprite::create("street06.png");
+
+    _street3->setScale(0.5);
+    _street4->setScale(0.5);
+    _street5->setScale(0.5);
+    
+    _street1 = Sprite::create("street07.png");
+    _street2 = Sprite::create("street08.png");
+//    _street3 = Sprite::create("street03.png");
+//    _street4 = Sprite::create("street02.png");
+//    _street5 = Sprite::create("street01.png");
+    
+//    _street1->setScale(2);
+//    _street2->setScale(2);
+    
+//    _street1 = Sprite::create("streetdark.png");
+//    _street2 = Sprite::create("streetdark.png");
+//    _street3 = Sprite::create("streetdark.png");
+    
+//    _street1->setAnchorPoint(Vec2(0,0));
+//    _street2->setAnchorPoint(Vec2(0,0));
+//    _street3->setAnchorPoint(Vec2(0,0));
     
     
     auto centerPos = Vec2(origin.x + visibleSize.width / 2,
@@ -262,18 +343,33 @@ void HelloWorld::createScrollingBackground(cocos2d::Size visibleSize,
     
     
     // 3) Determine relative movement speeds for foreground and background
-    Vec2 cloudSpeed = Vec2(0.06, 0.06);
+    Vec2 cloudSpeed = Vec2(0.12, 0.12);
     Vec2 hillSpeed = Vec2(0.02, 0.02);
-    
+    Vec2 houseSpeed = Vec2(0.1, 0.1);
+    Vec2 streetSpeed = Vec2(0.2, 0.2);
     
     // 4) Add children to ParallaxNode
     
     _backgroundNode->addChild(_background1, 0, cloudSpeed, leftTopPos);
-    _backgroundNode->addChild(_background2, 2, cloudSpeed, rightTopPos);
     _backgroundNode->addChild(_background3, 1, hillSpeed, leftCenPos);
     _backgroundNode->addChild(_background4, 1, hillSpeed, rightCenPos);
+    _backgroundNode->addChild(_background2, 0, cloudSpeed, rightTopPos);
     
-    this->scheduleUpdate();
+    _backgroundNode->addChild(_street1, 1, houseSpeed, Vec2(origin.x,
+                                                            origin.y + _street1->getBoundingBox().size.height / 2));
+    
+    _backgroundNode->addChild(_street2, 1, houseSpeed, Vec2(origin.x+_street1->getBoundingBox().size.width,
+                                                            origin.y + _street2->getBoundingBox().size.height / 2));
+    
+    _backgroundNode->addChild(_street3, 1, streetSpeed, Vec2(origin.x,
+                                                             origin.y + _street3->getBoundingBox().size.height / 2));
+    
+    _backgroundNode->addChild(_street4, 1, streetSpeed, Vec2(origin.x+_street4->getBoundingBox().size.width,
+                                                             origin.y + _street4->getBoundingBox().size.height / 2));
+    
+    _backgroundNode->addChild(_street5, 1, streetSpeed, Vec2(origin.x+_street4->getBoundingBox().size.width*2,
+                                                             origin.y + _street5->getBoundingBox().size.height / 2));
+    
 }
 
 
@@ -303,6 +399,12 @@ void HelloWorld::updateBackground(float dt){
     backGrounds->pushBack(_background3);
     backGrounds->pushBack(_background4);
     
+    backGrounds->pushBack(_street1);
+    backGrounds->pushBack(_street2);
+    backGrounds->pushBack(_street3);
+    backGrounds->pushBack(_street4);
+    backGrounds->pushBack(_street5);
+    
     for (auto background : *backGrounds) {
         float size = background->getContentSize().width;
         float xPosition = _backgroundNode->convertToWorldSpace(
@@ -321,7 +423,7 @@ void HelloWorld::updateBackground(float dt){
 
 
 #define KNUMNUTS 10
-#define KNUMHURDLES 2
+#define KNUMHURDLES 1
 #define KNUMPOWERUPS 1
 #define KNUMLIVES 3
 #define KNUMCOINS 10
@@ -412,8 +514,19 @@ void HelloWorld::createTopbarStats(cocos2d::Size visibleSize,
 
 
 #define NUTS 0
-#define HURDLES 1
-#define POWERUPS 2
+
+enum HURDLES
+{
+    ENEMY = 1
+};
+
+enum POWERUPS
+{
+    SHEILD = 2,
+    AMMO = 3,
+    MAGNET = 4,
+    SPEED = 5
+};
 
 
 void HelloWorld::createScrollingTargets(cocos2d::Size visibleSize,
@@ -440,57 +553,52 @@ void HelloWorld::createScrollingTargets(cocos2d::Size visibleSize,
         _nuts->pushBack(nut);
     }
     
-    
-    
-    
-    
     for(int i = 0; i < KNUMPOWERUPS; ++i) {
         auto sheild = Sprite::create("shield.png");
-        sheild->setTag(POWERUPS);
+        sheild->setTag(SHEILD);
         sheild->setVisible(false);
         this->addChild(sheild, 1);
         _collectables->pushBack(sheild);
+        
+        auto ammo = Sprite::create("sun.png");
+        ammo->setTag(AMMO);
+        ammo->setVisible(false);
+        this->addChild(ammo, 1);
+        _collectables->pushBack(ammo);
     }
-    _nextCollectableSpawn = 90000; // we don't want power ups to appear immediately
-    
-    
-    
-    
-//    Vector<SpriteFrame*> animFrames(11);
-//    char str[100] = {0};
-//    for(int i = 1; i < 11; i++)
-//    {
-//        sprintf(str, "birdAmin00%02d.png",i);
-//        auto frame = SpriteFrame::create(str,Rect(0,0,60,70)); //we assume that the sprites' dimentions are 60*70 rectangles.
-//        animFrames.pushBack(frame);
-//    }
-//    
-//    auto animation = Animation::createWithSpriteFrames(animFrames, 0.2f);
-//    animation->setLoops(-1);
-//    animation->setDelayPerUnit(0.05);
-//    _animateBird = Animate::create(animation);
+//    _nextCollectableSpawn = 90000; // we don't want power ups to appear immediately
     
     
     for(int i = 0; i < KNUMHURDLES; ++i) {
-        auto bird = Sprite::create("birdAmin0000.png");
-        bird->setTag(HURDLES);
+        auto bird = Sprite::create("birdAnim0000.png");
+        bird->setTag(ENEMY);
+        bird->setName("birdAnim00");
         bird->setVisible(false);
         bird->setFlippedX(true);
-        this->addChild(bird, 2);
+        
+        auto birdbody = PhysicsBody::createCircle(bird->getBoundingBox().size.width/2);
+        birdbody->setCollisionBitmask(2);
+        birdbody->setContactTestBitmask(true);
+        bird->setPhysicsBody(birdbody);
+        
+        this->addChild(bird, 3);
         _hurdles->pushBack(bird);
+        
+        
+        auto bird2 = Sprite::create("birdAmin0000.png");
+        bird2->setTag(ENEMY);
+        bird2->setName("birdAmin00");
+        bird2->setVisible(false);
+        bird2->setFlippedX(true);
+        
+        auto birdbody2 = PhysicsBody::createCircle(bird2->getBoundingBox().size.width/2);
+        birdbody2->setCollisionBitmask(2);
+        birdbody2->setContactTestBitmask(true);
+        bird2->setPhysicsBody(birdbody2);
+        
+        this->addChild(bird2, 3);
+        _hurdles->pushBack(bird2);
     }
-    
-//    for(int i = 0; i < KNUMHURDLES; ++i) {
-//        auto star = Sprite::create("star.png");
-//        star->setTag(HURDLES);
-//        star->setVisible(false);
-//        this->addChild(star, 2);
-//        _hurdles->pushBack(star);
-//    }
-//    
-    
-    
-    
     
 }
 
@@ -498,21 +606,28 @@ void HelloWorld::createScrollingTargets(cocos2d::Size visibleSize,
 
 
 
-void HelloWorld::updateTargets(float dt){
+
+
+
+
+
+void HelloWorld::updateNuts(float dt){
     // Random generation of collectables and hurdles
     float curTimeMillis = getTimeTick();
-    
+    //////////////////////////////
+    // Create NUTS
+    //////////////////////////////////////
     
     if (curTimeMillis > _nextNutSpawn) {
         // time has come to spawn new nut
-        float randMillisecs = randomValueBetween(4.0, 6.0) * 1000; // (0.20 , 1.0)
+        float randMillisecs = randomValueBetween(2.0, 3.0) * 1000; // (0.20 , 1.0)
         _nextNutSpawn = randMillisecs + curTimeMillis;
         
         auto heightNut = ((Sprite *)_nuts->at(0))->getBoundingBox().size.height;
         auto widthNut = ((Sprite *)_nuts->at(0))->getBoundingBox().size.width;
         
         float randY = randomValueBetween(heightNut*2, visibleSize.height - heightNut*2); // bottom and top || (0 , maxheight)
-        float randDuration =  06.0;//<--Lets use fixed duration for now || randomValueBetween(2.0,10.0);
+        float randDuration =  2.0;//<--Lets use fixed duration for now || randomValueBetween(2.0,10.0);
         
         float randCount = randomValueBetween(3, 9); // for number of nuts only
         
@@ -524,7 +639,7 @@ void HelloWorld::updateTargets(float dt){
         // 1 = nut is present
         //////////////////////////////////////////
         
-         /*************\
+        /*************\
          *  abc  abc  *
          1  000  010  1
          2  000  111  2
@@ -534,42 +649,27 @@ void HelloWorld::updateTargets(float dt){
         
         //////////////////////////////////////////////////////////////////////////////
         // Let's define positions
-        //////////////////////////////////////////////////////////////////////////////
         
-        //        auto a1 = Vec2(visibleSize.width+widthNut, randY + heightNut);
-        //        auto b1 = Vec2(visibleSize.width+widthNut*2, randY + heightNut);
-        //        auto c1 = Vec2(visibleSize.width+widthNut*3, randY + heightNut);
-        //
-        //        auto a2 = Vec2(visibleSize.width+widthNut, randY);
-        //        auto b2 = Vec2(visibleSize.width+widthNut*2, randY);
-        //        auto c2 = Vec2(visibleSize.width+widthNut*3, randY);
-        //
-        //        auto a3 = Vec2(visibleSize.width+widthNut, randY - heightNut);
-        //        auto b3 = Vec2(visibleSize.width+widthNut*2, randY - heightNut);
-        //        auto c3 = Vec2(visibleSize.width+widthNut*3, randY - heightNut);
-        
-        ////////////////////////////////////////////////////////////////////////////////
-
         int rows = 3;
         int cols = 3;
         
-        auto cordinates = new Vector<coordinates *>(randCount);
+        auto cordinates = new Vector<Coordinates *>(randCount);
         
         for (int i = 0; i < rows; i++){
             randY = randY + heightNut * (i - 1); // only valid for 3 x 3 matrix
             for (int j = 0; j < cols; j++) {
                 //
-                auto cord = new coordinates();
+                auto cord = new Coordinates();
                 cord->setPositon(visibleSize.width+widthNut*(j+1), randY); // optimise this section
                 cordinates->pushBack(cord);
             }
         }
-
+        
         // Keep generating nuts
         for (_nextNut = 0; _nextNut <= randCount; _nextNut++) {
             Sprite *nut = (Sprite *)_nuts->at(_nextNut);
             nut->stopAllActions();
-            auto position = ((coordinates* ) cordinates->at(_nextNut))->getPosition();
+            auto position = ((Coordinates* ) cordinates->at(_nextNut))->getPosition();
             nut->setPosition(position);
             nut->setVisible(true);
             nut->runAction(Sequence::create(
@@ -580,27 +680,58 @@ void HelloWorld::updateTargets(float dt){
         } // end for //
         
     }
-        
     
+    ///////////////////------------------ COLLISION DETECTION ---------------------//////////////////
+
+    // for each nuts, hide when touched
+    for (auto nut: *_nuts) {
+        if (!((Sprite *) nut)->isVisible() )
+            continue;
+        // pp collision detection
+        if (CollisionDetection::getInstance()->collidesWithSpriteHavingRadius(
+                                                                              actor->_sprite, _playerCollisionRadius, (Sprite *)nut, ((Sprite *)nut)->getBoundingBox().size.width/2)) {
+            if (((Sprite *)nut)->getTag() == NUTS) { // nut
+                // it's a nut
+                _nutscore++;
+                _lnuts->setString(std::to_string(_nutscore));
+                
+                // Now update the score.
+                _score = (_nutscore)*2;
+                //                _lscore->setString("Score:\n" + std::to_string(_score));
+                CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("collect.wav");
+                auto collectNut = ParticleExplosion::createWithTotalParticles(1);
+                collectNut->setPosition(((Sprite *)nut)->getPosition());
+                this->addChild(collectNut);
+            }
+            
+            ((Sprite *) nut)->setVisible(false);
+        }
+    }
+}
+    
+void HelloWorld::updateCollectables(float dt){
+    // Random generation of collectables and hurdles
+    float curTimeMillis = getTimeTick();
     /////////////////////////////////////////////////////////////////////////////////
-    // Create collectables (like power ups) and hurdles
+    // Create collectables (like power ups)
+    ///////////////////////////////////////////////////////////////////
     
     if (curTimeMillis > _nextCollectableSpawn) { // time has come to spawn new collectable
-
+        
         float randMillisecs = randomValueBetween(5.0, 15.0) * 1000;
         _nextCollectableSpawn = randMillisecs + curTimeMillis;
-
+        
         float randY = randomValueBetween(20 , visibleSize.height - 20);
         float randDuration = 2.0; // randomValueBetween(8.0, 5.0);
-
+        
         Sprite *collectable = (Sprite *)_collectables->at(_nextCollectable);
         _nextCollectable++;
-
+        
         if (_nextCollectable >= _collectables->size())
-        _nextCollectable = 0;
-
+            _nextCollectable = 0;
+        
         // In case of Sheild is already visible on the stage or equiped by the actor, do not appear
-        if (collectable->getTag() == POWERUPS && !isSheilded && !isSheildVisible) {
+        if (collectable->getTag() == SHEILD && !isSheilded && !isSheildVisible) {
             collectable->stopAllActions();
             collectable->setPosition( Vec2(visibleSize.width+collectable->getContentSize().width/2, randY));
             collectable->setVisible(true);
@@ -612,17 +743,53 @@ void HelloWorld::updateTargets(float dt){
         }
     }
     
+    ///////////////////------------------ COLLISION DETECTION ---------------------//////////////////
+
+    
+    // for each powerups, start effect and hide when touched
+    for (auto collectable: *_collectables) {
+        if (!((Sprite *) collectable)->isVisible() )
+            continue;
+        // pp collision detection
+        if (CollisionDetection::getInstance()->collidesWithSpriteHavingRadius(
+                                                                              actor->_sprite, _playerCollisionRadius, (Sprite *)collectable, ((Sprite *)collectable)->getBoundingBox().size.width/2)){
+            if (((Sprite *)collectable)->getTag() == SHEILD) { // power up
+                // it's a sheild
+                // _lives++;
+                auto sheildedEffect = Sequence::create(TintTo::create(0.5, 256, 100, 100),
+                                                       TintTo::create(0.5, _oldtint.r, _oldtint.g, _oldtint.b), NULL);
+                
+                actor->_sprite->runAction(
+                                          Sequence::create(
+                                                           Repeat::create(sheildedEffect, 10),
+                                                           CallFunc::create(CC_CALLBACK_0(HelloWorld::removeSheildEffect, this)), NULL));
+                isSheilded = true;
+                CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("powerup.wav");
+//                auto collectSheild = ParticleFire::createWithTotalParticles(4);
+//                collectSheild->setPosition(((Sprite *)collectable)->getPosition());
+//                this->addChild(collectSheild);
+            }
+            
+            ((Sprite *) collectable)->setVisible(false);
+        }
+    }
+}
+
+void HelloWorld::updateTargets(float dt){
+    // Random generation of collectables and hurdles
+    float curTimeMillis = getTimeTick();
+    
     ///////////////////////////////////////////////////////////////
     /// Create new hurdles
     ///////////////////////////////////////////////////////////////
     if (curTimeMillis > _nextHurdleSpawn) { // time has come to spawn new hurdles
         
-        float randMillisecs = randomValueBetween(1.0 , 5.0) * 1000; // (0.20 , 1.0)
+        float randMillisecs = randomValueBetween(1.0 , 4.0) * 1000; // (0.20 , 1.0)
         _nextHurdleSpawn = randMillisecs + curTimeMillis;
         
         float randY = randomValueBetween(20 , visibleSize.height - 20);
         float randH = randomValueBetween(0 , visibleSize.height);
-        float randDuration = 8.0;// randomValueBetween(10.0, 18.0);
+        float randDuration = randomValueBetween(4.0, 3.0);
         
         Sprite *hurdle = (Sprite *)_hurdles->at(_nextHurdle);
         _nextHurdle++;
@@ -630,16 +797,17 @@ void HelloWorld::updateTargets(float dt){
         if (_nextHurdle >= _hurdles->size())
             _nextHurdle = 0;
         
-        // In case of Sheild, do not appear if another sheild is already visible on the stage or equiped by the actor
+        
         hurdle->stopAllActions();
         
         //---------------------------------
+        auto spriteName = hurdle->getName();
         Vector<SpriteFrame*> animFrames(11);
         char str[100] = {0};
         for(int i = 1; i < 11; i++)
         {
-            sprintf(str, "birdAmin00%02d.png",i);
-            auto frame = SpriteFrame::create(str,Rect(0,0,60,70)); //we assume that the sprites' dimentions are 60*70 rectangles.
+            sprintf(str, "%02d.png",i);
+            auto frame = SpriteFrame::create(spriteName + str,Rect(0,0,60,70)); //we assume that the sprites' dimentions are 60*70 rectangles.
             animFrames.pushBack(frame);
         }
         
@@ -658,70 +826,20 @@ void HelloWorld::updateTargets(float dt){
     }
     
     
-    ///////////////////------------------COLLISION DETECTION---------------------//////////////////
+    ///////////////////------------------ COLLISION DETECTION ---------------------//////////////////
     
-    // for each nuts, hide when touched
-    for (auto nut: *_nuts) {
-        if (!((Sprite *) nut)->isVisible() )
-            continue;
-        // pp collision detection
-        if (CollisionDetection::getInstance()->collidesWithSpriteHavingRadius(
-            actor->_sprite, _playerCollisionRadius, (Sprite *)nut, ((Sprite *)nut)->getBoundingBox().size.width/2)) {
-            if (((Sprite *)nut)->getTag() == NUTS) { // nut
-                // it's a nut
-                _nutscore++;
-                _lnuts->setString(std::to_string(_nutscore));
-                
-                // Now update the score.
-                _score = (_nutscore)*2;
-                //                _lscore->setString("Score:\n" + std::to_string(_score));
-                CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("collect.wav");
-            }
-            
-            ((Sprite *) nut)->setVisible(false);
-        }
-    }
-    
-    
-    
-    // for each powerups, start effect and hide when touched
-    for (auto collectable: *_collectables) {
-        if (!((Sprite *) collectable)->isVisible() )
-            continue;
-        // pp collision detection
-        if (CollisionDetection::getInstance()->collidesWithSpriteHavingRadius(
-                                                                              actor->_sprite, _playerCollisionRadius, (Sprite *)collectable, ((Sprite *)collectable)->getBoundingBox().size.width/2)){
-            if (((Sprite *)collectable)->getTag() == POWERUPS) { // power up
-                // it's a sheild
-                // _lives++;
-                auto sheildedEffect = Sequence::create(TintTo::create(0.5, 256, 100, 100),
-                                                       TintTo::create(0.5, _oldtint.r, _oldtint.g, _oldtint.b), NULL);
-                
-                actor->_sprite->runAction(
-                                          Sequence::create(
-                                                           Repeat::create(sheildedEffect, 10),
-                                                           CallFunc::create(CC_CALLBACK_0(HelloWorld::removeSheildEffect, this)), NULL));
-                isSheilded = true;
-                CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("powerup.wav");
-            }
-            
-            ((Sprite *) collectable)->setVisible(false);
-        }
-    }
-    
-    
-    
-    // for each collectables,hide when touched
+//     for each hurdle, hit player
     for (auto hurdle : *_hurdles) {
         if (!((Sprite *) hurdle)->isVisible() )
             continue;
         
         // pp collision detection
-        if (CollisionDetection::getInstance()->collidesWithSpriteHavingRadius(
-                                                                              actor->_sprite, _playerCollisionRadius, (Sprite *)hurdle, ((Sprite *)hurdle)->getBoundingBox().size.width/2))
+        if (
+//        CollisionDetection::getInstance()->collidesWithSprite(actor->_sprite, (Sprite *)hurdle, true))
+            CollisionDetection::getInstance()->collidesWithSpriteHavingRadius(actor->_sprite, _playerCollisionRadius, (Sprite *)hurdle, ((Sprite *)hurdle)->getBoundingBox().size.width/2))
 //            areTheSpritesColliding(actor->_sprite, (Sprite *)hurdle, true, _rt))
         {
-            if (((Sprite *)hurdle)->getTag() == 1){ // hurdle
+//            if (((Sprite *)hurdle)->getTag() == 1){ // bird
                 if (!isSheilded) {
                     CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("pew.wav");
                     _lives--;
@@ -737,7 +855,7 @@ void HelloWorld::updateTargets(float dt){
                         break;
                     }
                     actor->_sprite->runAction(Sequence::createWithTwoActions(Blink::create(1.0, 9),
-                                                                             CallFunc::create(CC_CALLBACK_0(HelloWorld::setVisible, this))));
+                                                                             CallFunc::create(CC_CALLBACK_0(HelloWorld::makeActorVisible, this))));
                 }
                 else {
                     // explode stars
@@ -747,7 +865,7 @@ void HelloWorld::updateTargets(float dt){
                     this->addChild(destroyStar);
                     _score = _score+2;
                 }
-            }
+//            }
             
             ((Sprite *)hurdle)->setVisible(false);
         }
@@ -761,7 +879,7 @@ void HelloWorld::removeSheildEffect() {
 
 
 void HelloWorld::setInvisible(Node * node) {
-    if(node->getTag() == POWERUPS)
+    if(node->getTag() == SHEILD)
         isSheildVisible = false;
     node->setVisible(false);
 }
@@ -789,14 +907,14 @@ void HelloWorld::gameOver(){
     CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("invalid.wav");
     
     // stop everything moving
-    actor->_sprite->stopAllActions();
+//    actor->_sprite->stopAllActions();
     this->unscheduleUpdate();
     GameOverScene *gameOverScene = GameOverScene::create();
-    gameOverScene->getLayer()->getLabel()->setString(" x 0" + std::to_string(_nutscore));
+    gameOverScene->getLayer()->getLabel()->setString("0" + std::to_string(_nutscore));
     gameOverScene->getLayer()->_score->setString("Total Score: " + std::to_string(_score));
     
     auto transition = TransitionSplitRows::create(1.0f, gameOverScene);
-    CCDirector::getInstance()->pushScene(transition);//replaceScene(transition);
+    CCDirector::getInstance()->pushScene(transition);//replaceScene(transition); doesnot work in case of transition it gives error
 }
 
 
@@ -809,7 +927,7 @@ void HelloWorld::mainMenu(Ref* pSender) {
     CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
     CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
     auto scene = MainMenu::createScene();
-    CCDirector::getInstance()->replaceScene(scene);
+    CCDirector::getInstance()->pushScene(scene);
 }
 
 
@@ -895,113 +1013,14 @@ void HelloWorld::resumeGame(Ref* pSender) {
     
     isPaused = false;
     this->resume();
+
 }
 
 
 
-void HelloWorld::setVisible(){
-    this->actor->_sprite->setVisible(true);
+void HelloWorld::makeActorVisible(){
+    actor->_sprite->setVisible(true);
 }
-
-
-
-
-/********************************************/
-
-
-
-
-//Point HelloWorld::touchToPoint(Touch* touch)
-//{
-//    // convert the touch object to a position in our cocos2d space
-//    return CCDirector::getInstance()->convertToGL(touch->getLocationInView());
-//}
-//
-//bool HelloWorld::isTouchingSprite(Touch* touch)
-//{
-//    // here's one way, but includes the rectangular white space around our sprite
-//    //return CGRectContainsPoint(this->sprite->boundingBox(), this->touchToPoint(touch));
-//
-//    // this way is more intuitive for the user because it ignores the white space.
-//    // it works by calculating the distance between the sprite's center and the touch point,
-//    // and seeing if that distance is less than the sprite's radius
-//        return (this->_sprite->getPosition().getDistance(this->touchToPoint(touch)) < 100.0f);
-//}
-//
-//void HelloWorld::onTouchesBegan(const std::vector<Touch*>& touches, Event* event)
-//{
-//    // reset touch offset
-//    this->touchOffset = Point::ZERO;
-//
-//    for( auto touch : touches )
-//    {
-//        // if this touch is within our sprite's boundary
-//        if( touch && this->isTouchingSprite(touch) )
-//        {
-//            // calculate offset from sprite to touch point
-//            //            this->touchOffset = this->_sprite->getPosition() - this->touchToPoint(touch);
-//
-//            //            this->_sprite->setScale(1.0f);
-//            //
-//            //            // animate letting go of the sprite
-//            //            this->_sprite->runAction(Sequence::create(
-//            //                                                      ScaleBy::create(0.125f, 1.111f),
-//            //                                                      ScaleBy::create(0.125f, 0.9f),
-//            //                                                      nullptr
-//            //                                                      ));
-//        }
-//    }
-//}
-//
-//void HelloWorld::onTouchesMoved(const std::vector<Touch*>& touches, Event* event)
-//{
-//    for( auto touch : touches )
-//    {
-//        // set the new sprite position
-//                if( touch && touchOffset.x && touchOffset.y )
-//                    this->_sprite->setPosition(this->touchToPoint(touch) + this->touchOffset);
-//    }
-//}
-//
-//void HelloWorld::onTouchesEnded(const std::vector<Touch*>& touches, Event* event)
-//{
-//    //    Size visibleSize = Director::getInstance()->getVisibleSize();
-//    Vec2 origin = Director::getInstance()->getVisibleOrigin();
-//
-//    for( auto touch : touches )
-//    {
-//        if( touch && touchOffset.x && touchOffset.y  )
-//        {
-//            //            //            CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
-//            //
-//            //            // set the new sprite position
-//            //            this->_sprite->setPosition(this->touchToPoint(touch) + this->touchOffset);
-//            //
-//            //            // stop any existing actions and reset the scale
-//            //            //            this->_sprite->stopAllActions();
-//            //
-//            //            auto x = this->_sprite->getPositionX();
-//            //            auto h  = this->_sprite->getBoundingBox().size.height;
-//            //
-//            //            // animate falling of the sprite
-//            //            this->_sprite->runAction(Sequence::create(MoveTo::create(0.5,Vec2(x, h/2)),
-//            //                                                      nullptr
-//            //                                                      ));
-//            //
-//            //
-//            //            //	And play the sound effect in ccTouchesEnded() when the bullet is fired.
-//            //
-//            //            // cpp with cocos2d-x
-//            //            CocosDenshion::SimpleAudioEngine::getInstance()->playEffect(
-//            //                                                                        "fall.wav");
-//        }
-//    }
-//}
-
-
-
-
-
 
 
 

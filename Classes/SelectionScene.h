@@ -10,6 +10,8 @@
 #define __DragMeAway__SelectionScene__
 
 #include "cocos2d.h"
+#include "PlayerSpriteLayer.h"
+
 USING_NS_CC;
 
 class SelectionScene : public cocos2d::Layer
@@ -26,15 +28,19 @@ public:
     
     void nextCharacter();
     void prevCharacter();
-    void characterList();
+    void charactersList(Size visibleSize, Vec2 origin);
     void startGame();
     void mainMenu();
     
-private:
+    PlayerSpriteLayer *_playerLayer;
+    
+protected:
     Vector<Sprite *> *_players;
+    Vector<std::string > *_playersList;
     int currentCharacter;
     Label * _label;
-    
+    Sprite * _selectedCharacter;
+    Menu * menu;
 };
 
 #endif /* defined(__DragMeAway__GameOverScene__) */

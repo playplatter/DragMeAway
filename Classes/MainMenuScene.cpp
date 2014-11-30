@@ -9,7 +9,7 @@
 #include "MainMenuScene.h"
 #include "HelloWorldScene.h"
 #include "SelectionScene.h"
-#include "TouchableSpriteLayer.h"
+#include "PlayerSpriteLayer.h"
 #include "SimpleAudioEngine.h"
 
 
@@ -35,6 +35,7 @@ bool MainMenu::init() {
         return false;
     }
     
+
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
     
@@ -47,9 +48,35 @@ bool MainMenu::init() {
                       Vec2(origin.x + visibleSize.width / 2,
                            origin.y + visibleSize.height / 2));
     
-    this->addChild(sky, 1);
+    this->addChild(sky);
     
     
+    
+    // add shops
+    auto shop3 = Sprite::create("shop02.png");
+    shop3->setPosition(
+                       Vec2(shop3->getBoundingBox().size.width/2,
+                            origin.y + visibleSize.height / 2));
+    
+    this->addChild(shop3);
+    shop3->setScale(0.5);
+    
+    auto shop2 = Sprite::create("shop01.png");
+    shop2->setPosition(
+                       Vec2(shop3->getBoundingBox().size.width*2,
+                            visibleSize.height / 2));
+    
+    this->addChild(shop2);
+    shop2->setScale(0.5);
+    
+    
+    auto shop1 = Sprite::create("shop03.png");
+    shop1->setPosition(
+                       Vec2(shop1->getBoundingBox().size.width,
+                            origin.y + shop1->getBoundingBox().size.height/2));
+    
+    this->addChild(shop1);
+    shop1->setScale(0.5);
     
     /////////////////////////////
     // 2. add a play button to start the game
@@ -60,7 +87,7 @@ bool MainMenu::init() {
     
     playBtn->setPosition(
                            Vec2(
-                                origin.x + visibleSize.width / 2 - playBtn->getContentSize().width,
+                                origin.x + visibleSize.width / 2 + playBtn->getContentSize().width*2.5,
                                 origin.y));
     
     
@@ -126,12 +153,12 @@ void MainMenu::menuCloseCallback(Ref* pSender) {
 
 void MainMenu::menuStartCallback(Ref* pSender) {
     
-    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
+//    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
     
     // create a scene. it's an autorelease object
 //    auto scene = HelloWorld::createScene();
     auto scene = SelectionScene::createScene();
     
     // Start the game
-    Director::getInstance()->pushScene(scene);
+    Director::getInstance()->replaceScene(scene);
 }

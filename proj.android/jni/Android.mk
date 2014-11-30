@@ -14,11 +14,13 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/AppDelegate.cpp \
                    ../../Classes/HelloWorldScene.cpp \
                    ../../Classes/ParallaxNodeExtras.cpp \
-                   ../../Classes/TouchableSpriteLayer.cpp \
+                   ../../Classes/PlayerSpriteLayer.cpp \
                    ../../Classes/MainMenuScene.cpp \
                    ../../Classes/GameOverScene.cpp \
                    ../../Classes/CollisionDetection.cpp \
-                   ../../Classes/SplashScreen.cpp
+                   ../../Classes/SplashScreen.cpp \
+                   ../../Classes/coordinates.cpp \
+                   ../../Classes/SelectionScene.cpp
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../Classes
 

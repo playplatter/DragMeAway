@@ -3,7 +3,7 @@
 
 #include "cocos2d.h"
 #include "ParallaxNodeExtras.h"
-#include "TouchableSpriteLayer.h"
+#include "PlayerSpriteLayer.h"
 
 USING_NS_CC;
 
@@ -11,11 +11,15 @@ class HelloWorld : public cocos2d::Layer
 {
     
 public:
+    
+    PlayerSpriteLayer* actor;
+
+    
     // there's no 'id' in cpp, so we recommend returning the class instance pointer
     static cocos2d::Scene* createScene();
 
     // Here's a difference. Method 'init' in cocos2d-x returns bool, instead of returning 'id' in cocos2d-iphone
-    virtual bool init();  
+    virtual bool init();
     
     // a selector callback
     void mainMenu(cocos2d::Ref* pSender);
@@ -24,8 +28,6 @@ public:
     
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
-    
-    TouchableSpriteLayer * actor;
     
     float randomValueBetween(float low, float high);
     void setInvisible(Node * node);
@@ -48,6 +50,8 @@ public:
 //    void onTouchesMoved(const std::vector<Touch*>& touches, Event* event);
 //    void onTouchesEnded(const std::vector<Touch*>& touches, Event* event);
     
+    bool isHintShown;
+    
     void gameOver();
     void stopEverythingMoving();
     void removeSheildEffect();
@@ -64,6 +68,12 @@ private:
     typedef HelloWorld self;
     typedef Layer super;
     
+    PhysicsWorld * _sceneWorld;
+    void setPhysicsWorld(PhysicsWorld *world){_sceneWorld = world;}
+    bool onContactBegin(PhysicsContact &contact);
+    
+    void startSpawning();
+    
     // update position of scrolling background
     // scheduled Update
     void update(float dt);
@@ -72,10 +82,17 @@ private:
     void createTopbarStats(cocos2d::Size visibleSize, cocos2d::Vec2 origin);
     void createScrollingTargets(cocos2d::Size visibleSize, cocos2d::Vec2 origin);
     
+    void showHint();
+    void hideHint();
     void updateBackground(float dt);
+    void updateNuts(float dt);
+    void updateCollectables(float dt);
     void updateTargets(float dt);
     
-    void setVisible();
+    void makeActorVisible();
+    
+    EventListenerTouchAllAtOnce *_listener;
+    void onTouchesBegan(const std::vector<Touch*>& touches, Event* event);
     
     Size visibleSize;
     Vec2 origin;
@@ -84,7 +101,9 @@ private:
     ParallaxNodeExtras * _backgroundNode, * _targetNode;
     
     // Create World Sprites
-    Sprite *_background1, *_background2, *_background3, *_background4, *_grass, *_grass2, *_tree;
+    Sprite *_background1, *_background2, *_background3, *_background4,
+    *_street1, *_street2, *_street3, *_street4, *_street5,
+    *_grass, *_grass2, *_tree, *_hintSprite;
     
     // Score Label
     Label *_llives, *_lscore, *_lnuts, *_lcoins, *_label;
@@ -93,7 +112,7 @@ private:
     
     int _score;
     int _lives, _nutscore, _coins;
-    bool isSheilded, isSheildVisible, isPaused = false;
+    bool isSheilded, isSheildVisible, isPaused = false, shouldSpawn;
     
     int _nextCollectable, _nextNut, _nextHurdle;
     float _nextCollectableSpawn, _nextNutSpawn, _nextHurdleSpawn;

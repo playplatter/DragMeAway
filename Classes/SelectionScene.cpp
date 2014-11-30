@@ -40,6 +40,11 @@ bool SelectionScene::init() {
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
     
     
+    CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic("lemoncreme.wav", true);
+    
+    
+    
+    
     // Title
     auto label = Label::createWithSystemFont("Character Selection", "Noteworthy", 34);
     
@@ -58,51 +63,56 @@ bool SelectionScene::init() {
     
     
     // Menu items
-    auto prevItem = MenuItemImage::create("btn_back.png",
-                                          "btn_back.png",
-                                          callfunc_selector(SelectionScene::prevCharacter));
-    prevItem->setPosition(Vec2(visibleSize.width/2 - prevItem->getContentSize().width*2 - 10, prevItem->getContentSize().height/2));
-    
     auto menuItem = MenuItemImage::create("btn_menu.png",
                                           "btn_menu.png",
-                                          callfunc_selector(SelectionScene::mainMenu));
-    menuItem->setPosition(Vec2(visibleSize.width/2 - menuItem->getContentSize().width/2 - 10, menuItem->getContentSize().height/2));
+                                          CC_CALLBACK_0(SelectionScene::mainMenu, this));
+    menuItem->setPosition(Vec2(menuItem->getContentSize().width/2 - 10, menuItem->getContentSize().height/2));
+    menuItem->setScale(0.5);
     
     auto playItem = MenuItemImage::create("btn_play.png",
                                            "btn_play.png",
-                                           callfunc_selector(SelectionScene::startGame));
-    playItem->setPosition(Vec2(visibleSize.width/2 + playItem->getContentSize().width/2, playItem->getContentSize().height/2));
+                                           CC_CALLBACK_0(SelectionScene::startGame, this));
+    playItem->setPosition(Vec2(visibleSize.width - playItem->getContentSize().width/2, playItem->getContentSize().height/2));
+    playItem->setScale(0.5);
+    
+    auto prevItem = MenuItemImage::create("btn_back.png",
+                                          "btn_back.png",
+                                          CC_CALLBACK_0(SelectionScene::prevCharacter, this));
+    prevItem->setPosition(Vec2(visibleSize.width/2 - prevItem->getContentSize().width,
+//                               prevItem->getContentSize().height/2
+                               visibleSize.height/2));
+    prevItem->setScale(0.5);
     
     auto nextItem = MenuItemImage::create("btn_next.png",
                                            "btn_next.png",
-                                           callfunc_selector(SelectionScene::nextCharacter));
-    nextItem->setPosition(Vec2(visibleSize.width/2 + nextItem->getContentSize().width*2 +10, nextItem->getContentSize().height/2));
+                                           CC_CALLBACK_0(SelectionScene::nextCharacter, this));
+    nextItem->setPosition(Vec2(visibleSize.width/2 + nextItem->getContentSize().width,
+//                               nextItem->getContentSize().height/2
+                               visibleSize.height/2));
+    nextItem->setScale(0.5);
 
     
     // create menu, it's an autorelease object
-    auto menu = Menu::create(prevItem, playItem, menuItem, nextItem, NULL);
+    menu = Menu::create(prevItem, playItem, menuItem, nextItem, NULL);
     menu->setPosition(Vec2::ZERO);
     this->addChild(menu, 1);
     
     
     
-    this->characterList();
+    ////////////////////////////////////////// PLAYER CONFIGURATION ////////////////////////////////////////////////
     
-    printf("%2lu", _players->size());
-    
+    this->charactersList( visibleSize, origin );
     return true;
 }
 
-void SelectionScene::characterList(){
+void SelectionScene::charactersList(Size visibleSize, Vec2 origin){
     
-    
-    Size visibleSize = CCDirector::getInstance()->getWinSize();
-    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+    currentCharacter = 0;
     
     ///////////////////////////////////////////////////////////
     // character image
     
-    auto character = Sprite::create("birdAmin0000.png");
+    auto character = Sprite::create("Kuchu_00000.png");
     character->setPosition(
                            Vec2(
                                 origin.x + visibleSize.width/2,
@@ -111,10 +121,13 @@ void SelectionScene::characterList(){
                                 //                                   - character->getContentSize().height
                                 ));
     character->setVisible(false);
-    this->addChild(character);
+//    character->setScale(0.4);
+    character->setName("Kuchu_");
     
-    auto character2 = Sprite::create("Kuchu0000.png");
-    character2->setScale(0.1);
+    this->addChild(character);
+    character->autorelease();
+    
+    auto character2 = Sprite::create("Muchu_00000.png");
     character2->setPosition(
                             Vec2(
                                  origin.x + visibleSize.width/2,
@@ -122,74 +135,95 @@ void SelectionScene::characterList(){
                                  //                                   - label->getContentSize().height
                                  //                                   - character->getContentSize().height
                                  ));
+    character2->setVisible(false);
+//    character2->setScale(0.4);
+    character2->setName("Muchu_");
     this->addChild(character2);
-    
+    character2->autorelease();
     
     ////////////////////////////////////////////////////////////
-    this->_players = new Vector<Sprite *>(2);
-    this->_players->insert(0, character);
-    this->_players->insert(1, character2);
-    this->_players->shrinkToFit();
-    currentCharacter = 1;
+    _players = new Vector<Sprite *>();
+    _players->pushBack(character);
+    _players->pushBack(character2);
+    
+//    printf("%2lu", _players->size());
+    
+    // set actor layer
+    _selectedCharacter = (Sprite *) _players->at(currentCharacter);
+    _selectedCharacter->setVisible(true);
+    UserDefault::getInstance()->setStringForKey("spriteName", _selectedCharacter->getName().c_str());
+    UserDefault::getInstance()->setFloatForKey("scaleFactor", _selectedCharacter->getScale());
+    
 }
 
 void SelectionScene::startGame()
 {
-    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
+    //hide buttons
+    menu->setVisible(false);
+    CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
+//    CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
+//    printf("\n spritename %s",  _selectedCharacter->getName().c_str());
+//    //remove everything
+//    for (int i = 0; i <_players->size(); i++) {
+//        this->removeChild(_players->at(i));
+//    }
+//    _players = NULL;
+    
     auto scene = HelloWorld::createScene();
-    CCDirector::getInstance()->replaceScene(scene);
+    //_playerLayer;
+    Director::getInstance()->replaceScene(scene);
 }
 
 void SelectionScene::mainMenu()
 {
+    /// hide buttons
+    menu->setVisible(false);
+    CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
     CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
     auto scene = MainMenu::createScene();
-    CCDirector::getInstance()->replaceScene(scene);//CCDirector::getInstance()->getRunningScene()
+    Director::getInstance()->replaceScene(scene); // Director::getInstance()->getRunningScene()
 }
 
 void SelectionScene::prevCharacter()
 {
-    this->characterList();
-    printf("%2d / %2lu", currentCharacter, this->_players->size());
     CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
-    
-    for (int j = 0; j < this->_players->size(); j++) {
+    for (int j = 0; j < _players->size(); j++) {
         // set visiblity false
-        Sprite * player = this->_players->at(j);
+        Sprite * player = (Sprite*)_players->at(j);
         player->setVisible(false);
     }
-//    for (auto player: *this->_players){
-//        // set visiblity false
-//       ((Sprite *) player)->setVisible(false);
-//    }
-    
     if (currentCharacter > 0) {
         currentCharacter -- ;
     } else
-        currentCharacter = this->_players->size() - 1;
+        currentCharacter = _players->size() - 1;
     
-    ((Sprite *) this->_players->at(currentCharacter))->setVisible(false);
+    // set actor layer
+    _selectedCharacter = (Sprite *) _players->at(currentCharacter);
+    _selectedCharacter->setVisible(true);
+    UserDefault::getInstance()->setStringForKey("spriteName", _selectedCharacter->getName().c_str());
+    UserDefault::getInstance()->setFloatForKey("scaleFactor", _selectedCharacter->getScale());
+    
+//    printf("\n%s %.1f", _selectedCharacter->getName().c_str(), _selectedCharacter->getScale());
 }
 
 void SelectionScene::nextCharacter()
 {
-    this->characterList();
-    printf("%2d / %2lu", currentCharacter, this->_players->size());
     CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("explode.wav");
-    
-    for (int j = 0; j < this->_players->size(); j++) {
+    for (int j = 0; j < _players->size(); j++) {
         // set visiblity false
-        Sprite * player = this->_players->at(j);
+        Sprite * player = (Sprite*) _players->at(j);
         player->setVisible(false);
     }
-    
-//    for (auto player: *this->_players){
-//        ((Sprite *) player)->setVisible(false);
-//    }
-    
-    if (currentCharacter < this->_players->size()-1) {
+    if (currentCharacter < _players->size()-1) {
         currentCharacter ++ ;
     } else
         currentCharacter = 0;
-    ((Sprite *) this->_players->at(currentCharacter))->setVisible(false);
+    
+    // set actor layer
+    _selectedCharacter = (Sprite *) _players->at(currentCharacter);
+    _selectedCharacter->setVisible(true);
+    UserDefault::getInstance()->setStringForKey("spriteName", _selectedCharacter->getName().c_str());
+    UserDefault::getInstance()->setFloatForKey("scaleFactor", _selectedCharacter->getScale());
+    
+//    printf("\n%s", _selectedCharacter->getName().c_str());
 }
