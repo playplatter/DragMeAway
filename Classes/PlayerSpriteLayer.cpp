@@ -31,7 +31,7 @@ PlayerSpriteLayer::PlayerSpriteLayer()
     
     
     _originalTint = this->_sprite->getColor();
-    _collisionRadius = this->_sprite->getBoundingBox().size.width*0.4;
+    _collisionRadius = this->_sprite->getBoundingBox().size.width*0.2;
     
     if(this->getChildByName(_spriteName) == nullptr){
         this->addChild(_sprite, 2);
@@ -55,7 +55,7 @@ PlayerSpriteLayer::PlayerSpriteLayer()
     animation->setDelayPerUnit(0.05);
     auto animate = Animate::create(animation);
 
-    this->_sprite->setScale(_spriteScaleFactor);
+    this->_sprite->setScale(0.6);//_spriteScaleFactor
     _sprite->setAnchorPoint(Point(0,0)); // nudge the anchor point upward because of the shadow
     
     

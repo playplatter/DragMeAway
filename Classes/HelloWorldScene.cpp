@@ -269,6 +269,7 @@ void HelloWorld::createScrollingBackground(cocos2d::Size visibleSize,
     
     this->addChild(sky, -1);
     
+    
     //////////////////////////////
     // add a scrolling background
     _grass = Sprite::create("roads.png");
@@ -343,10 +344,10 @@ void HelloWorld::createScrollingBackground(cocos2d::Size visibleSize,
     
     
     // 3) Determine relative movement speeds for foreground and background
-    Vec2 cloudSpeed = Vec2(0.12, 0.12);
-    Vec2 hillSpeed = Vec2(0.02, 0.02);
-    Vec2 houseSpeed = Vec2(0.1, 0.1);
-    Vec2 streetSpeed = Vec2(0.2, 0.2);
+    Vec2 cloudSpeed = Vec2(0.06, 0.06);
+    Vec2 hillSpeed = Vec2(0.01, 0.01);
+    Vec2 houseSpeed = Vec2(0.05, 0.05);
+    Vec2 streetSpeed = Vec2(0.08, 0.08);
     
     // 4) Add children to ParallaxNode
     
@@ -620,14 +621,14 @@ void HelloWorld::updateNuts(float dt){
     
     if (curTimeMillis > _nextNutSpawn) {
         // time has come to spawn new nut
-        float randMillisecs = randomValueBetween(2.0, 3.0) * 1000; // (0.20 , 1.0)
+        float randMillisecs = randomValueBetween(4.0, 6.0) * 1000; // (0.20 , 1.0)
         _nextNutSpawn = randMillisecs + curTimeMillis;
         
         auto heightNut = ((Sprite *)_nuts->at(0))->getBoundingBox().size.height;
         auto widthNut = ((Sprite *)_nuts->at(0))->getBoundingBox().size.width;
         
         float randY = randomValueBetween(heightNut*2, visibleSize.height - heightNut*2); // bottom and top || (0 , maxheight)
-        float randDuration =  2.0;//<--Lets use fixed duration for now || randomValueBetween(2.0,10.0);
+        float randDuration =  4.0;//<--Lets use fixed duration for now || randomValueBetween(2.0,10.0);
         
         float randCount = randomValueBetween(3, 9); // for number of nuts only
         

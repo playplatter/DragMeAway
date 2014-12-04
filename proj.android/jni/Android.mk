@@ -19,7 +19,7 @@ LOCAL_SRC_FILES := hellocpp/main.cpp \
                    ../../Classes/GameOverScene.cpp \
                    ../../Classes/CollisionDetection.cpp \
                    ../../Classes/SplashScreen.cpp \
-                   ../../Classes/coordinates.cpp \
+                   ../../Classes/Coordinates.cpp \
                    ../../Classes/SelectionScene.cpp
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../Classes
